@@ -1,9 +1,3 @@
-Este es un excelente punto de partida para tu proyecto **Oraculus**. Un README que cuenta la historia detrás del código no solo lo hace más humano, sino que demuestra tu capacidad de planeación y evolución arquitectónica como arquitecto de software y educador.
-
-Aquí tienes una estructura profesional y narrativa para tu archivo `README.md`:
-
----
-
 # 👁️ Oraculus: Financial Repo Analytics
 
 **Oraculus** es una herramienta de interfaz de línea de comandos (CLI) diseñada para transformar métricas técnicas de repositorios (GitHub/Jira) en indicadores financieros claros para stakeholders. Permite calcular el costo real de desarrollo basado en el esfuerzo técnico y la eficiencia operativa.
@@ -16,14 +10,17 @@ El desarrollo de Oraculus no empezó frente a un monitor, sino en los espacios e
 
 Todo comenzó con la necesidad de centralizar la comunicación entre ramas de GitHub y tareas de Jira. Estos esquemas iniciales fueron trazados "entre clases", capturando la esencia de lo que hoy es el ecosistema de análisis.
 
+![image alt](https://github.com/MetApogeo/OraculusDev/blob/f732e9130c537b9e068e3f364435c52b7e059ef1/docs/img/hoja_ruta_boceto1.jpg)
 _Figura 1: Arquitectura inicial de flujo entre Jira, GitHub y el cálculo de Story Points._
 
+![image alt](https://github.com/MetApogeo/OraculusDev/blob/f732e9130c537b9e068e3f364435c52b7e059ef1/docs/img/hoja_ruta_boceto2.jpg)
 _Figura 2: Definición de esquemas estrictos con Pydantic y la lógica de mappers entre PHP y Python._
 
 ### 2. La Formalización Matemática (La Pizarra)
 
 Durante una hora libre, las ideas se convirtieron en fórmulas. El **7 de mayo de 2026**, definí la lógica financiera que rige el sistema actual, incluyendo el filtro de **Rango Intercuartílico (IQR)** para detectar anomalías en los commits.
 
+![image alt](https://github.com/MetApogeo/OraculusDev/blob/f732e9130c537b9e068e3f364435c52b7e059ef1/docs/img/pizarra_calculo1.jpg)
 _Figura 3: Definición del Índice de Eficiencia Financiera ($IEF$) y fórmulas de costo por commit._
 
 ---
