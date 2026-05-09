@@ -33,8 +33,8 @@ from typing import List
 class CommitData:
     sha: str
     mensaje: str
-    additions: int
-    deletions: int
+    additions: int = 0
+    deletions: int = 0
 
 def obtener_commits(repo_path, token):
     url = f"https://api.github.com/repos/{repo_path}/commits"
