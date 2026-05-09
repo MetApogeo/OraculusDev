@@ -1,57 +1,92 @@
+"""
+PRECAUCIÓN:
+    Actualmente esta herramienta hace un API REST a Github con un Formula de N+1
+    Por lo que se debe mantener el limite de commits en 5 y no abusar de ello
+    No solo por los tokens de la API sino porque el sistema se saturará
+
+Posibles refactorizaciones:
+    1. Github GraphQL API:
+        GraphQL permite enviar una nota a GitHub diciendo: 
+        "Dame los últimos 20 commits y de cada uno dime sus adiciones, 
+        eliminaciones y mensaje". 
+        
+        GitHub responde todo en un solo paquete JSON.
+    2. Clonado Local(El ideal):
+        El usuario tenga el repositorio descargado en su computadora. 
+        En lugar de preguntarle a los servidores de GitHub en 
+        California cada vez que necesitas un dato, se pregunta a 
+        la carpeta .git que ya tiene en su disco duro.
+        
+        Usando una librería como GitPython o simplemente 
+        comandos de consola desde Python
+"""
+
 import requests
 import os
 from dotenv import load_dotenv
 from dataclasses import dataclass, field
 from typing import List
 
+
+
 @dataclass
-class ResultadoCommit:
+class CommitData:
     sha: str
     mensaje: str
-    adiciones: int
-    eliminaciones: int
-    archivos: int
+    additions: int
+    deletions: int
 
-load_dotenv()
-
-PAT_Github = os.getenv("GITHUB_TOKEN")
-headers = {
-    'Authorization': f'token {PAT_Github}',
-    "Accept": "application/vnd.github.v3+json"
-}
-repo = "MetApogeo/Aprendiendo_Ruby_and_RubyOnRails"
-url = f"https://api.github.com/repos/{repo}/commits"
-
-
-def CalcularCommits() -> List[ResultadoCommit]:
+def obtener_commits(repo_path, token):
+    url = f"https://api.github.com/repos/{repo_path}/commits"
+    headers = {
+        'Authorization': f'token {token}',
+        "Accept": "application/vnd.github.v3+json"
+    }
     response = requests.get(url, headers=headers)
-    lista_resultados = []
+    if response.status_code != 200: return []
 
-    if response.status_code == 200:
-        commits = response.json()
+    lista_objetos = []
+    for c in response.json()[:5]:
+        sha = c['sha']
+        res = requests.get(f"{url}/{sha}", headers=headers).json()
 
-        for c in commits[:5]:
-            sha = c['sha']
-            commit_url = f"{url}/{sha}"
-            detail_response = requests.get(commit_url, headers=headers)
+        lista_objetos.append(CommitData(
+            sha=sha[:7],
+            mensaje = res['commit']['message'].splitlines()[0],
+            additions = res.get('stats', {}).get('additions'),
+            deletions=res.get('stats', {}).get('deletions',0)
+        ))
+    return lista_objetos
 
-            if detail_response.status_code == 200:
-                data = detail_response.json()
-                stats = data.get('stats', {})
+def realizar_calculos(commit: CommitData, salario: float, horas_mes: int):
+    costo_hora = salario / horas_mes
+    loc_commit = commit.additions + commit.deletions
 
-                obj_commit = ResultadoCommit(
-                    sha = sha[:7],
-                    mensaje = data['commit']['message'].splitlines()[0],
-                    adiciones = stats.get('additions', 0),
-                    eliminaciones = stats.get('deletions',0),
-                    archivos = len(data.get('files', []))
-                )
+    t_horas = loc_commit /60
+    costo_monetario = costo_hora * t_horas
 
-                lista_resultados.append(obj_commit)
-                print(f"Procesado: {sha[:7]}")
-        return lista_resultados
-    else:
-        print("Failed to fetch data:", response.status_code)
-        return []
+    return t_horas, costo_monetario
 
-mis_commits = CalcularCommits()
+def ejecutar_cli():
+    load_dotenv()
+    token = os.getenv("GITHUB_TOKEN")
+
+    repo = input("Introduce el repo (usuario/repo): ")
+    salario = float(input("Salario mensual: "))
+    horas_efectivas = int(input("Horas efectivas al mes: "))
+
+    print(f"\n--- Analizando {repo} ---\n")
+
+    commits = obtener_commits(repo, token)
+
+    for c in commits:
+        tiempo, costo = realizar_calculos(c, salario, horas_efectivas)
+
+        print(f"Commit: {c.sha} | LOC: {c.additions + c.deletions}")
+        print(f"> Tiempo: {tiempo:.2f}h | Costo: ${costo:.2f}")
+        print("-" * 30)
+
+if __name__ == "__main__":
+    ejecutar_cli()
+
+
