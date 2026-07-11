@@ -67,6 +67,20 @@ def realizar_calculos(commit: CommitData, salario: float, horas_mes: int):
 
     return t_horas, costo_monetario
 
+def filtrar_outliers(commits: list[CommitData]):
+    locs = [c.additions + c.deletions for c in commits]
+    locs_ordenados = sorted(locs)
+
+    q1 = locs_ordenados[len(locs_ordenados) // 4]
+    q3 = locs_ordenados[(len(locs_ordenados) * 3) // 4]
+    iqr = q3 - q1
+    l_sup = q3 + (1.5 * iqr)
+
+    validos = [c for c in commits if (c.additions + c.deletions) <= l_sup]
+    outliers = [c for c in commits if (c.additions + c.deletions) > l_sup]
+
+    return validos, outliers
+
 def ejecutar_cli():
     load_dotenv()
     token = os.getenv("GITHUB_TOKEN")

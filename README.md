@@ -1,9 +1,3 @@
-Este es un excelente punto de partida para tu proyecto **Oraculus**. Un README que cuenta la historia detrás del código no solo lo hace más humano, sino que demuestra tu capacidad de planeación y evolución arquitectónica como arquitecto de software y educador.
-
-Aquí tienes una estructura profesional y narrativa para tu archivo `README.md`:
-
----
-
 # 👁️ Oraculus: Financial Repo Analytics
 
 **Oraculus** es una herramienta de interfaz de línea de comandos (CLI) diseñada para transformar métricas técnicas de repositorios (GitHub/Jira) en indicadores financieros claros para stakeholders. Permite calcular el costo real de desarrollo basado en el esfuerzo técnico y la eficiencia operativa.
