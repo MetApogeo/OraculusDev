@@ -94,8 +94,11 @@ def analyze(repo, limite, salario, horas, loc_por_hora, python, php, js):
             import webbrowser
             import os
             
+            resultados["c_esp"] = c_esp
+            resultados["ief"] = (resultados["costo_real"] / c_esp) if c_esp else None
+            
             html = generar_reporte_html(resultados, repo, c_esp)
-            ruta = guardar_reporte(html, repo)
+            ruta = guardar_reporte(html, repo, resultados)
             ruta_abs = os.path.abspath(ruta)
             click.echo(f"[Info] Reporte generado en: oraculus_reports/{os.path.basename(ruta_abs)}")
             click.echo("[Info] Abriendo en el navegador...")
@@ -108,4 +111,135 @@ def es_local_path(entrada: str) -> bool:
     import os
     return os.path.exists(entrada)
 
+def limpiar_unicode_consola(texto: str) -> str:
+    import sys
+    try:
+        encoding = sys.stdout.encoding or "utf-8"
+        texto.encode(encoding)
+        return texto
+    except Exception:
+        return (
+            texto.replace("→", "->")
+                 .replace("↑", "^")
+                 .replace("↓", "v")
+                 .replace("©", "(c)")
+        )
+
+@click.command("history")
+@click.option("--open", "abrir", type=int, default=None, help="Número del reporte a abrir")
+def history(abrir):
+    """Muestra el historial de análisis generados."""
+    from oraculus.utils.history_manager import cargar_historial, abrir_reporte
+    
+    if abrir is not None:
+        try:
+            abrir_reporte(abrir)
+        except Exception as e:
+            click.echo(click.style(f"[Error] {e}", fg="red"))
+        return
+
+    historial = cargar_historial()
+    if not historial:
+        click.echo("[Info] No hay análisis guardados aún.")
+        return
+
+    from rich.table import Table
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich import box
+    from oraculus.cli.display import CyberpunkColors
+
+    console = Console()
+    c = CyberpunkColors
+
+    table = Table(
+        title=f"[bold {c.LOGO}]=== HISTORIAL DE ANÁLISIS ===[/]",
+        box=box.ASCII,
+        border_style=c.LOGO
+    )
+    table.add_column("#", style=c.NEON_CYAN, justify="center")
+    table.add_column("Repositorio", style=c.TEXTO_P, width=25)
+    table.add_column("IEF", justify="right")
+    table.add_column("Riesgo", justify="center")
+    table.add_column("Fecha", justify="center", style=c.NEON_CYAN)
+
+    for item in historial:
+        riesgo_val = item["riesgo"]
+        if riesgo_val == "CRITICO":
+            style_r = f"bold {c.NEON_RED}"
+        elif riesgo_val == "ALTO":
+            style_r = "bold color(208)"
+        elif riesgo_val == "MODERADO":
+            style_r = "bold color(226)"
+        else:
+            style_r = f"bold {c.NEON_GREEN}"
+            
+        ief_val = item["ief"]
+        ief_str = f"{ief_val:.2f}" if ief_val is not None else "N/D"
+        
+        fecha_val = item["fecha"]
+        fecha_str = fecha_val[5:] if len(fecha_val) >= 10 else fecha_val
+        
+        table.add_row(
+            str(item["id"]),
+            item["repo"],
+            ief_str,
+            f"[{style_r}]{riesgo_val}[/]",
+            fecha_str
+        )
+
+    console.print(table)
+    click.echo(f"Ejecuta: oraculus history --open <#> para abrir un reporte\n")
+
+    # Tendencia del último repositorio analizado
+    ultimo_repo = historial[-1]["repo"]
+    repo_entries = [item for item in historial if item["repo"] == ultimo_repo]
+    if len(repo_entries) > 1:
+        # Calcular tendencias de IEF
+        iefs = [item["ief"] for item in repo_entries]
+        valid_iefs = [v for v in iefs if v is not None]
+        ief_trend_str = " → ".join([f"{v:.2f}" if v is not None else "N/D" for v in iefs])
+        
+        if len(valid_iefs) >= 2:
+            first_ief = valid_iefs[0]
+            last_ief = valid_iefs[-1]
+            if last_ief > first_ief:
+                ief_msg = " [bold color(196)][↑ Deteriorando][/]"
+            elif last_ief < first_ief:
+                ief_msg = f" [bold {c.NEON_GREEN}][↓ Mejorando][/]"
+            else:
+                ief_msg = f" [bold {c.TEXTO_P}][= Estable][/]"
+        else:
+            ief_msg = ""
+            
+        # Calcular tendencias de Deuda
+        deudas = [item.get("costo_deuda", 0.0) for item in repo_entries]
+        deuda_trend_str = " → ".join([f"${v:.0f}" for v in deudas])
+        
+        first_deuda = deudas[0]
+        last_deuda = deudas[-1]
+        if last_deuda > first_deuda:
+            deuda_msg = " [bold color(196)][↑ Acumulando][/]"
+        elif last_deuda < first_deuda:
+            deuda_msg = f" [bold {c.NEON_GREEN}][↓ Reduciendo][/]"
+        else:
+            deuda_msg = f" [bold {c.TEXTO_P}][= Estable][/]"
+            
+        trend_content = (
+            f"  [bold {c.NEON_CYAN}]IEF:[/]   {ief_trend_str}{ief_msg}\n"
+            f"  [bold {c.NEON_CYAN}]Deuda:[/] {deuda_trend_str}{deuda_msg}"
+        )
+        
+        trend_content = limpiar_unicode_consola(trend_content)
+        trend_title = limpiar_unicode_consola(f"[bold {c.NEON_CYAN}]=== TENDENCIA: {ultimo_repo} ===[/bold {c.NEON_CYAN}]")
+        
+        console.print(Panel(
+            trend_content,
+            title=trend_title,
+            box=box.ASCII,
+            border_style=c.NEON_CYAN,
+            width=60
+        ))
+
 cli.add_command(analyze)
+cli.add_command(history)

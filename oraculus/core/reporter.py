@@ -550,8 +550,9 @@ def generar_reporte_html(resultados: dict, repo: str, c_esp: float = None) -> st
 """
     return html
 
-def guardar_reporte(html: str, repo: str) -> str:
+def guardar_reporte(html: str, repo: str, resultados: dict) -> str:
     import os
+    from oraculus.utils.history_manager import registrar_reporte
     
     # Si el repo es un directorio local, resolvemos su nombre de carpeta absoluto
     if os.path.isdir(repo) or repo in (".", "./", ".\\"):
@@ -569,5 +570,16 @@ def guardar_reporte(html: str, repo: str) -> str:
     
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(html)
+        
+    repo_github = obtener_nombre_repositorio_git(repo)
+    registrar_reporte(
+        repo=repo_github,
+        ief=resultados.get("ief"),
+        riesgo=resultados["riesgo"]["nivel"],
+        c_real=resultados["costo_real"],
+        c_esp=resultados.get("c_esp"),
+        archivo=filename,
+        costo_deuda=resultados.get("costo_deuda", 0.0)
+    )
         
     return filepath

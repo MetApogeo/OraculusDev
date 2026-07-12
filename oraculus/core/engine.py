@@ -76,7 +76,8 @@ def ejecutar_motor_analisis(
                 "costo_mitigar_hoy": 0.0,
                 "costo_ignorar": 0.0,
                 "perdida_eficiencia": 0.0
-            }
+            },
+            "costo_deuda": 0.0
         }
 
     # Auto-detección de lenguaje si es necesario
@@ -122,6 +123,8 @@ def ejecutar_motor_analisis(
             commits_deuda.append(item)
 
     costo_futuro_estimado = estimar_costo_deuda(commits_deuda)
+    costo_deuda = sum(item[2] for item in commits_deuda)
+    
     riesgo = evaluar_riesgo_negocio(
         commits_deuda=commits_deuda,
         total_commits=len(commits),
@@ -140,5 +143,6 @@ def ejecutar_motor_analisis(
         "total_tiempo_normal": total_tiempo_normal,
         "total_costo_outlier": total_costo_outlier,
         "total_tiempo_outlier": total_tiempo_outlier,
-        "riesgo": riesgo
+        "riesgo": riesgo,
+        "costo_deuda": costo_deuda
     }
