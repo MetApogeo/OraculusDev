@@ -6,7 +6,27 @@ from typing import Dict, Any
 
 console = Console()
 
+class CyberpunkColors:
+    LOGO = "color(129)"       # Morado Eléctrico / Violeta Intenso
+    TEXTO_P = "color(141)"    # Lavanda / Violeta Claro (para textos secundarios)
+    NEON_CYAN = "color(51)"   # Cian Neón (para headers, variables y SHAs)
+    NEON_GREEN = "color(82)"  # Verde Neón (para rangos [OK], éxitos y ganancias)
+    NEON_RED = "color(196)"   # Rojo Neón (para alertas de presupuesto excedido o [CRITICAL])
+
+def mostrar_banner():
+    c = CyberpunkColors
+    logo = fr"""[{c.LOGO}]
+   ____                        __           
+  / __ \_________  _______  __/ /_  _______ 
+ / / / / ___/ __ `/ ___/ / / / / / / / ___/ 
+/ /_/ / /  / /_/ / /__/ /_/ / / /_/ (__  )  
+\____/_/   \__,_/\___/\__,_/_/\__,_/____/   [/{c.LOGO}]
+    [{c.NEON_CYAN}]» [ FINANCIAL TELEMETRY & TECH DEBT AUDIT ] «[/{c.NEON_CYAN}]
+"""
+    console.print(logo)
+
 def mostrar_reporte(resultados: Dict[str, Any], salario: float, horas_efectivas: int, loc_por_hora: float):
+    c = CyberpunkColors
     repo = resultados["repo"]
     es_local = resultados["es_local"]
     validos = resultados["commits_validos"]
@@ -15,85 +35,93 @@ def mostrar_reporte(resultados: Dict[str, Any], salario: float, horas_efectivas:
     tipo_repo = "Local" if es_local else "Cache Local (Clonado)"
     
     console.print(Panel(
-        f"[bold blue]Analisis de Repositorio ({tipo_repo})[/]\n[bold green]Ruta/Repo:[/] {repo}\n[bold]Parametros:[/] Salario: ${salario:.2f} | Horas/Mes: {horas_efectivas}h | LOC/Hora: {loc_por_hora}",
-        title="[bold]OraculusDev: Analitica Financiera[/]",
+        f"[bold {c.LOGO}]Analisis de Repositorio ({tipo_repo})[/bold {c.LOGO}]\n[bold {c.NEON_CYAN}]Ruta/Repo:[/] {repo}\n[bold {c.TEXTO_P}]Parametros:[/] Salario: ${salario:.2f} | Horas/Mes: {horas_efectivas}h | LOC/Hora: {loc_por_hora}",
+        title=f"[bold {c.NEON_CYAN}]OraculusDev: Analitica Financiera[/bold {c.NEON_CYAN}]",
         box=box.ASCII,
-        border_style="blue"
+        border_style=c.LOGO
     ))
 
     if not validos and not outliers:
-        console.print("[yellow]No se encontraron commits para analizar.[/]")
+        console.print(f"[yellow]No se encontraron commits para analizar.[/]")
         return
 
     if validos:
-        table = Table(title="[bold green]=== COMMITS ESTANDAR ===[/]", box=box.ASCII, header_style="bold green")
-        table.add_column("SHA", style="cyan", width=8)
-        table.add_column("Mensaje", width=40)
+        table = Table(
+            title=f"[bold {c.NEON_GREEN}]=== COMMITS ESTANDAR ===[/bold {c.NEON_GREEN}]",
+            box=box.ASCII,
+            header_style=f"bold {c.NEON_CYAN}",
+            border_style=c.TEXTO_P
+        )
+        table.add_column("SHA", style=c.NEON_CYAN, width=8)
+        table.add_column("Mensaje", width=40, style=c.TEXTO_P)
         table.add_column("LOC (+/-)", justify="right")
         table.add_column("Tiempo Est.", justify="right", style="magenta")
-        table.add_column("Costo Est.", justify="right", style="green")
+        table.add_column("Costo Est.", justify="right", style=c.NEON_GREEN)
 
-        for c, t, costo in validos:
-            loc_str = f"{c.additions + c.deletions} (+{c.additions}/-{c.deletions})"
-            table.add_row(c.sha, c.mensaje, loc_str, f"{t:.2f}h", f"${costo:.2f}")
+        for commit_item, t, costo in validos:
+            loc_str = f"{commit_item.additions + commit_item.deletions} (+{commit_item.additions}/-{commit_item.deletions})"
+            table.add_row(commit_item.sha, commit_item.mensaje, loc_str, f"{t:.2f}h", f"${costo:.2f}")
         
         console.print(table)
 
     if outliers:
-        console.print("\n[bold red]=== ANOMALIAS DETECTADAS (Outliers) ===[/]")
-        console.print("[dim]Commits de gran volumen que podrian sesgar las estimaciones normales.[/]")
-        table_out = Table(box=box.ASCII, header_style="bold red")
-        table_out.add_column("SHA", style="red", width=8)
-        table_out.add_column("Mensaje", width=40)
+        console.print(f"\n[bold {c.NEON_RED}]=== ANOMALIAS DETECTADAS (Outliers) ===[/bold {c.NEON_RED}]")
+        console.print(f"[{c.TEXTO_P}][dim]Commits de gran volumen que podrian sesgar las estimaciones normales.[/][/{c.TEXTO_P}]")
+        
+        table_out = Table(
+            box=box.ASCII,
+            header_style=f"bold {c.NEON_RED}",
+            border_style=c.LOGO
+        )
+        table_out.add_column("SHA", style=c.NEON_RED, width=8)
+        table_out.add_column("Mensaje", width=40, style=c.TEXTO_P)
         table_out.add_column("LOC (+/-)", justify="right")
         table_out.add_column("Tiempo Est.", justify="right", style="magenta")
-        table_out.add_column("Costo Est.", justify="right", style="green")
+        table_out.add_column("Costo Est.", justify="right", style=c.NEON_GREEN)
 
-        for c, t, costo in outliers:
-            loc_str = f"{c.additions + c.deletions} (+{c.additions}/-{c.deletions})"
-            table_out.add_row(c.sha, c.mensaje, loc_str, f"{t:.2f}h", f"${costo:.2f}")
+        for commit_item, t, costo in outliers:
+            loc_str = f"{commit_item.additions + commit_item.deletions} (+{commit_item.additions}/-{commit_item.deletions})"
+            table_out.add_row(commit_item.sha, commit_item.mensaje, loc_str, f"{t:.2f}h", f"${costo:.2f}")
         
         console.print(table_out)
 
 def mostrar_resumen_financiero(resultados: Dict[str, Any], c_esp: float = None):
+    c = CyberpunkColors
     costo_real = resultados["costo_real"]
     tiempo_total = resultados["tiempo_total"]
     
     panel_content = (
-        f"[bold]Desarrollo Estandar:[/]  ${resultados['total_costo_normal']:.2f} (Tiempo: {resultados['total_tiempo_normal']:.2f}h)\n"
+        f"[bold {c.TEXTO_P}]Desarrollo Estandar:[/]  ${resultados['total_costo_normal']:.2f} (Tiempo: {resultados['total_tiempo_normal']:.2f}h)\n"
     )
     if resultados["commits_outliers"]:
         panel_content += (
-            f"[bold]Desarrollo Anomalo:[/]   ${resultados['total_costo_outlier']:.2f} (Tiempo: {resultados['total_tiempo_outlier']:.2f}h)\n"
+            f"[bold {c.NEON_RED}]Desarrollo Anomalo:[/]   ${resultados['total_costo_outlier']:.2f} (Tiempo: {resultados['total_tiempo_outlier']:.2f}h)\n"
         )
-    panel_content += f"[bold]Total (C_real):[/]       ${costo_real:.2f} (Tiempo Total: {tiempo_total:.2f}h)"
+    panel_content += f"[bold {c.NEON_CYAN}]Total (C_real):[/bold {c.NEON_CYAN}]       ${costo_real:.2f} (Tiempo Total: {tiempo_total:.2f}h)"
+    
+    border_style = c.LOGO
     
     if c_esp is not None:
         ief = costo_real / c_esp
         if ief < 0.8:
             semaforo = "[OK] Termino mas rapido de lo esperado"
-            color = "green"
+            color = c.NEON_GREEN
+            border_style = c.NEON_GREEN
         elif ief <= 1.2:
             semaforo = "[OK] Rango aceptable (Dentro de lo esperado)"
-            color = "yellow"
+            color = c.NEON_GREEN
+            border_style = c.TEXTO_P
         else:
             semaforo = "[ALERTA] Presupuesto excedido"
-            color = "red"
+            color = c.NEON_RED
+            border_style = c.NEON_RED
             
-        panel_content += f"\n[bold]Presupuesto (C_esp):[/]  ${c_esp:.2f}"
+        panel_content += f"\n[bold {c.NEON_CYAN}]Presupuesto (C_esp):[/]  ${c_esp:.2f}"
         panel_content += f"\n---------------------------------------------\n[bold {color}]IEF: {ief:.2f}  {semaforo}[/]"
 
     console.print("\n", Panel(
         panel_content,
-        title="[bold]Resumen Consolidado[/]",
+        title=f"[bold {c.NEON_CYAN}]Resumen Consolidado[/bold {c.NEON_CYAN}]",
         box=box.ASCII,
-        border_style="green" if c_esp is None or IEF_color_helper(costo_real, c_esp) == "green" else "yellow" if IEF_color_helper(costo_real, c_esp) == "yellow" else "red"
+        border_style=border_style
     ))
-
-def IEF_color_helper(c_real: float, c_esp: float) -> str:
-    ief = c_real / c_esp
-    if ief < 0.8:
-        return "green"
-    elif ief <= 1.2:
-        return "yellow"
-    return "red"

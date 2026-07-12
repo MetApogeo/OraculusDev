@@ -1,7 +1,7 @@
 import click
 from oraculus.utils.config import cargar_entorno
 from oraculus.core.engine import ejecutar_motor_analisis
-from oraculus.cli.display import mostrar_reporte, mostrar_resumen_financiero
+from oraculus.cli.display import mostrar_reporte, mostrar_resumen_financiero, mostrar_banner
 
 @click.group()
 def cli():
@@ -16,6 +16,7 @@ def cli():
 @click.option('--loc-por-hora', type=float, default=60.0, help='LOC promedio por hora.')
 def analyze(repo, limite, salario, horas, loc_por_hora):
     """Analiza los costos de desarrollo de un repositorio y calcula el IEF."""
+    mostrar_banner()
     cargar_entorno(repo if es_local_path(repo) else None)
 
     if salario is None:
