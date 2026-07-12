@@ -1,6 +1,21 @@
-# 👁️ Oraculus: Financial Repo Analytics
+<p align="center">
+  <img src="docs/src/oraculus%20svg.svg" width="180" alt="Oraculus Logo" />
+</p>
 
-**Oraculus** es una herramienta de interfaz de línea de comandos (CLI) diseñada para transformar métricas técnicas de repositorios (GitHub/Jira) en indicadores financieros claros para stakeholders. Permite calcular el costo real de desarrollo basado en el esfuerzo técnico y la eficiencia operativa.
+# Oraculus: Telemetría Financiera y Auditoría de Deuda Técnica
+
+**Oraculus** es un motor analítico avanzado y una herramienta de interfaz de línea de comandos (CLI) diseñada para cerrar la brecha de comunicación entre el desarrollo técnico y los tomadores de decisiones empresariales. Traduce las métricas complejas de repositorios de software (commits, complejidad ciclomática y volumen de cambios) en **indicadores financieros claros, tangibles e interactivos**.
+
+---
+
+### ¿Por qué Oraculus?
+
+En la gestión de proyectos de software, la velocidad de desarrollo suele desconectarse de la realidad financiera. **Oraculus** soluciona esto a través de tres pilares operativos:
+1. **Auditoría Financiera Real ($C_{real}$):** Calcula el valor real del esfuerzo invertido de desarrollo cruzando los commits del equipo con el salario estimado y el tiempo de implementación.
+2. **Semáforo de Eficiencia ($IEF$):** Determina el Índice de Eficiencia Financiera comparando el costo consumido contra el presupuesto asignado, alertando inmediatamente ante desvíos presupuestarios.
+3. **Análisis de Riesgo y Deuda Técnica:** Identifica commits que degradan la calidad del código, estimando el costo de la Deuda Técnica acumulada y evaluando el Riesgo de Negocio (probabilidad de retrasos) para decisiones de PM proactivas.
+
+---
 
 ## 📜 La Historia Detrás del Código
 
