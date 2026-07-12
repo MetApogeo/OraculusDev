@@ -22,6 +22,24 @@ def analyze(repo, limite, salario, horas, loc_por_hora):
     if salario is None:
         salario = click.prompt("Salario mensual promedio (USD)", type=float)
 
+    click.echo("\n¿Qué lenguaje deseas analizar?")
+    click.echo("  [ 1 ] Python   (Radon)")
+    click.echo("  [ 2 ] PHP      — Próximamente")
+    click.echo("  [ 3 ] JavaScript — Próximamente")
+    click.echo("  [ 4 ] Auto-detectar")
+    lang_choice = click.prompt("Seleccione una opcion [Por defecto: 1]", default="1", type=click.Choice(['1', '2', '3', '4']), show_choices=False)
+
+    if lang_choice == "1":
+        lenguaje = "python"
+    elif lang_choice == "2":
+        click.echo("[Info] PHP - Próximamente. Usando Python por ahora.")
+        lenguaje = "python"
+    elif lang_choice == "3":
+        click.echo("[Info] JavaScript - Próximamente. Usando Python por ahora.")
+        lenguaje = "python"
+    else:
+        lenguaje = "auto"
+
     if limite < 10:
         click.echo("\n[Advertencia] Con menos de 10 commits el filtro IQR puede no ser representativo.")
 
@@ -31,7 +49,8 @@ def analyze(repo, limite, salario, horas, loc_por_hora):
             limite=limite,
             salario=salario,
             horas_efectivas=horas,
-            loc_por_hora=loc_por_hora
+            loc_por_hora=loc_por_hora,
+            lenguaje=lenguaje
         )
         
         mostrar_reporte(resultados, salario, horas, loc_por_hora)

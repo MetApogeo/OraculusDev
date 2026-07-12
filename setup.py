@@ -9,6 +9,7 @@ setup(
         "python-dotenv>=1.0.0",
         "click>=8.1.0",
         "rich>=13.0.0",
+        "radon>=6.0.0",
     ],
     entry_points={
         "console_scripts": [

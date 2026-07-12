@@ -42,3 +42,11 @@ def es_archivo_ignorado(filepath: str) -> bool:
             return True
             
     return False
+
+def detectar_lenguaje(archivos: list) -> str:
+    # Obtener extensiones de los archivos modificados
+    extensiones = [f.split(".")[-1] for f in archivos if "." in f]
+    if "py" in extensiones:
+        return "python"
+    # PHP, JS próximamente
+    return "python"  # fallback seguro por ahora

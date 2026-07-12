@@ -6,5 +6,6 @@ Requires-Dist: requests>=2.31.0
 Requires-Dist: python-dotenv>=1.0.0
 Requires-Dist: click>=8.1.0
 Requires-Dist: rich>=13.0.0
+Requires-Dist: radon>=6.0.0
 Dynamic: license-file
 Dynamic: requires-dist

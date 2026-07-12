@@ -25,6 +25,16 @@ def mostrar_banner():
 """
     console.print(logo)
 
+def format_calidad(calidad: str) -> str:
+    if calidad == "OPTIMIZACION":
+        return "[cyan]Optimizacion[/cyan]"
+    elif calidad == "FEATURE_LIMPIA":
+        return "[green]Feature Limpia[/green]"
+    elif calidad == "DEUDA_TECNICA":
+        return "[red]Deuda Tecnica[/red]"
+    else:
+        return "[dim]Neutral[/dim]"
+
 def mostrar_reporte(resultados: Dict[str, Any], salario: float, horas_efectivas: int, loc_por_hora: float):
     c = CyberpunkColors
     repo = resultados["repo"]
@@ -53,14 +63,15 @@ def mostrar_reporte(resultados: Dict[str, Any], salario: float, horas_efectivas:
             border_style=c.TEXTO_P
         )
         table.add_column("SHA", style=c.NEON_CYAN, width=8)
-        table.add_column("Mensaje", width=40, style=c.TEXTO_P)
+        table.add_column("Mensaje", width=35, style=c.TEXTO_P)
         table.add_column("LOC (+/-)", justify="right")
         table.add_column("Tiempo Est.", justify="right", style="magenta")
         table.add_column("Costo Est.", justify="right", style=c.NEON_GREEN)
+        table.add_column("Calidad", justify="center")
 
-        for commit_item, t, costo in validos:
+        for commit_item, t, costo, calidad in validos:
             loc_str = f"{commit_item.additions + commit_item.deletions} (+{commit_item.additions}/-{commit_item.deletions})"
-            table.add_row(commit_item.sha, commit_item.mensaje, loc_str, f"{t:.2f}h", f"${costo:.2f}")
+            table.add_row(commit_item.sha, commit_item.mensaje, loc_str, f"{t:.2f}h", f"${costo:.2f}", format_calidad(calidad))
         
         console.print(table)
 
@@ -74,14 +85,15 @@ def mostrar_reporte(resultados: Dict[str, Any], salario: float, horas_efectivas:
             border_style=c.LOGO
         )
         table_out.add_column("SHA", style=c.NEON_RED, width=8)
-        table_out.add_column("Mensaje", width=40, style=c.TEXTO_P)
+        table_out.add_column("Mensaje", width=35, style=c.TEXTO_P)
         table_out.add_column("LOC (+/-)", justify="right")
         table_out.add_column("Tiempo Est.", justify="right", style="magenta")
         table_out.add_column("Costo Est.", justify="right", style=c.NEON_GREEN)
+        table_out.add_column("Calidad", justify="center")
 
-        for commit_item, t, costo in outliers:
+        for commit_item, t, costo, calidad in outliers:
             loc_str = f"{commit_item.additions + commit_item.deletions} (+{commit_item.additions}/-{commit_item.deletions})"
-            table_out.add_row(commit_item.sha, commit_item.mensaje, loc_str, f"{t:.2f}h", f"${costo:.2f}")
+            table_out.add_row(commit_item.sha, commit_item.mensaje, loc_str, f"{t:.2f}h", f"${costo:.2f}", format_calidad(calidad))
         
         console.print(table_out)
 
@@ -90,6 +102,33 @@ def mostrar_resumen_financiero(resultados: Dict[str, Any], c_esp: float = None):
     costo_real = resultados["costo_real"]
     tiempo_total = resultados["tiempo_total"]
     
+    # 1. Analizar Deuda Técnica Detectada
+    commits_deuda = []
+    for item in resultados["commits_validos"]:
+        if item[3] == "DEUDA_TECNICA":
+            commits_deuda.append(item)
+    for item in resultados["commits_outliers"]:
+        if item[3] == "DEUDA_TECNICA":
+            commits_deuda.append(item)
+            
+    if commits_deuda:
+        from oraculus.core.metrics import estimar_costo_deuda
+        costo_actual_deuda = sum(item[2] for item in commits_deuda)
+        costo_futuro_deuda = estimar_costo_deuda(commits_deuda)
+        
+        debt_panel_content = (
+            f"[bold {c.NEON_RED}]Commits con deuda:[/]     {len(commits_deuda)}\n"
+            f"[bold {c.NEON_RED}]Costo actual:[/]          ${costo_actual_deuda:.2f}\n"
+            f"[bold {c.NEON_RED}]Costo futuro est.:[/]     ${costo_futuro_deuda:.2f}  (factor 3x)"
+        )
+        console.print("\n", Panel(
+            debt_panel_content,
+            title=f"[bold {c.NEON_RED}]=== DEUDA TECNICA DETECTADA ===[/bold {c.NEON_RED}]",
+            box=box.ASCII,
+            border_style=c.NEON_RED
+        ))
+    
+    # 2. Resumen Consolidado Principal
     panel_content = (
         f"[bold {c.TEXTO_P}]Desarrollo Estandar:[/]  ${resultados['total_costo_normal']:.2f} (Tiempo: {resultados['total_tiempo_normal']:.2f}h)\n"
     )

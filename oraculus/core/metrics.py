@@ -38,3 +38,37 @@ def filtrar_outliers(commits: List[CommitData]) -> Tuple[List[CommitData], List[
     outliers = [c for c in commits if (c.additions + c.deletions) > l_sup]
 
     return validos, outliers
+
+def medir_cc_codigo(code: str) -> float:
+    from radon.complexity import cc_visit
+    if not code.strip():
+        return 0.0
+    try:
+        blocks = cc_visit(code)
+        if not blocks:
+            return 0.0
+        return sum(b.complexity for b in blocks) / len(blocks)
+    except Exception:
+        return 0.0
+
+def calcular_delta_calidad(cc_antes: float, cc_despues: float, 
+                           loc_antes: int, loc_despues: int) -> str:
+    if loc_antes == 0:
+        return "FEATURE_LIMPIA"
+        
+    delta_cc = cc_despues - cc_antes
+    delta_loc = loc_despues - loc_antes
+    
+    if delta_loc < 0 and delta_cc < 0:
+        return "OPTIMIZACION"
+    elif delta_loc > 0 and delta_cc <= 0:
+        return "FEATURE_LIMPIA"
+    elif delta_loc > 0 and delta_cc > 0:
+        return "DEUDA_TECNICA"
+    else:
+        return "NEUTRAL"
+
+def estimar_costo_deuda(commits_deuda: list) -> float:
+    # La deuda técnica típicamente cuesta 3x su costo original en mantenimiento futuro.
+    # commits_deuda es una lista de tuplas (commit_data, tiempo_est, costo_est, calidad)
+    return sum(item[2] for item in commits_deuda) * 3.0

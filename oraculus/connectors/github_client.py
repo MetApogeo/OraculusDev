@@ -84,17 +84,16 @@ def obtener_commits_local(repo_path: str, limit: int = 10) -> List[CommitData]:
             cmd,
             cwd=repo_path,
             capture_output=True,
-            text=True,
             check=False
         )
     except FileNotFoundError:
         raise RuntimeError("No se encontró el comando 'git' en el sistema. Asegúrate de tener Git instalado y configurado en tu PATH.")
 
-    if result.returncode != 0:
-        error_msg = result.stderr.strip()
-        raise RuntimeError(f"Error de Git al obtener los commits: {error_msg}")
+    output = result.stdout.decode("utf-8", errors="ignore")
+    stderr = result.stderr.decode("utf-8", errors="ignore")
 
-    output = result.stdout
+    if result.returncode != 0:
+        raise RuntimeError(f"Error de Git al obtener los commits: {stderr.strip()}")
     if not output.strip():
         return []
 
@@ -159,9 +158,9 @@ def clonar_y_obtener_commits(repo_remoto: str, limit: int, token: str = None) ->
     print(f"[Info] Clonando repositorio remoto {repo_remoto} en caché local (.oraculus_cache)...")
     clone_cmd = ["git", "clone", "--depth", str(limit), "--quiet", url, dest_path]
     try:
-        result = subprocess.run(clone_cmd, capture_output=True, text=True, check=False)
+        result = subprocess.run(clone_cmd, capture_output=True, check=False)
         if result.returncode != 0:
-            clean_error = result.stderr.strip()
+            clean_error = result.stderr.decode("utf-8", errors="ignore").strip()
             if token:
                 clean_error = clean_error.replace(token, "******")
             raise RuntimeError(f"Error al clonar el repositorio: {clean_error}")
@@ -169,3 +168,61 @@ def clonar_y_obtener_commits(repo_remoto: str, limit: int, token: str = None) ->
         raise RuntimeError("No se encontró el comando 'git' en el sistema. Asegúrate de tener Git instalado y en tu PATH.")
 
     return obtener_commits_local(dest_path, limit)
+
+def clonar_local_a_cache(ruta_local: str) -> str:
+    import shutil
+    abs_path = os.path.abspath(ruta_local)
+    dir_name = "local_copy_" + os.path.basename(abs_path)
+    cache_dir = os.path.join(os.getcwd(), ".oraculus_cache")
+    os.makedirs(cache_dir, exist_ok=True)
+    dest_path = os.path.join(cache_dir, dir_name)
+    
+    if os.path.exists(dest_path):
+        try:
+            shutil.rmtree(dest_path)
+        except Exception:
+            subprocess.run(["rmdir", "/s", "/q", dest_path], shell=True)
+            
+    print(f"[Info] Copiando/Clonando repositorio local '{ruta_local}' a cache para analisis seguro...")
+    cmd = ["git", "clone", "--quiet", abs_path, dest_path]
+    try:
+        result = subprocess.run(cmd, capture_output=True, check=False)
+        if result.returncode != 0:
+            stderr_str = result.stderr.decode("utf-8", errors="ignore").strip()
+            raise RuntimeError(f"Error al clonar el repositorio local a cache: {stderr_str}")
+    except FileNotFoundError:
+        raise RuntimeError("No se encontro el comando 'git' en el sistema. Asegurarse de tener Git instalado y en tu PATH.")
+    return dest_path
+
+def preparar_repositorio_analisis(repo: str, limite: int, token: str = None):
+    if es_local(repo):
+        try:
+            cache_path = clonar_local_a_cache(repo)
+            commits = obtener_commits_local(cache_path, limite)
+            return commits, cache_path, True
+        except Exception as e:
+            print(f"[Advertencia] Error al clonar local a cache: {e}. Usando repositorio directo.")
+            commits = obtener_commits_local(repo, limite)
+            return commits, repo, True
+    else:
+        if "github.com" not in repo and not repo.startswith("http"):
+            repo_name = repo.replace("/", "_")
+        else:
+            repo_name = repo.split("/")[-1].replace(".git", "")
+        
+        cache_dir = os.path.join(os.getcwd(), ".oraculus_cache")
+        cache_path = os.path.join(cache_dir, repo_name)
+        
+        try:
+            commits = clonar_y_obtener_commits(repo, limite, token)
+            return commits, cache_path, False
+        except Exception as clone_err:
+            print(f"[Info] Clonado local no disponible ({clone_err}). Reintentando via GitHub API...")
+            limite_api = 5 if limite > 5 else limite
+            try:
+                commits = obtener_commits_api(repo, token)[:limite_api]
+            except Exception as api_err:
+                print(f"[Error] Fallo la conexion a la API de GitHub: {api_err}")
+                commits = []
+            return commits, None, False
+

@@ -30,8 +30,8 @@ _Figura 3: Definición del Índice de Eficiencia Financiera ($IEF$) y fórmulas 
 Hoy, Oraculus ha evolucionado de garabatos en papel a una herramienta CLI funcional que aplica principios sólidos de ingeniería de software:
 
 - **Arquitectura DTO:** Uso de `dataclasses` para el transporte de datos limpio y tipado.
-- **Responsabilidad Única (SRP):** El sistema está dividido en estaciones: obtención de datos (Fetcher), cálculo de métricas (Calculadora) y ejecución (CLI).
-- **Métricas en Tiempo Real:** Integración con la API REST de GitHub para analizar impacto de código.
+- **Responsabilidad Única (SRP):** El sistema está dividido en estaciones: conectores de datos, lógica de métricas (Calculadora) y presentación (CLI).
+- **Análisis Git Local Seguro:** Copia automática de repositorios locales a caché para comparaciones seguras sin interferir en el workspace activo del desarrollador.
 
 ### Lógica Financiera Implementada
 
@@ -46,20 +46,27 @@ El sistema calcula actualmente el costo de la siguiente manera:
 3. **Costo del Commit ($C_{commit}$):**
    $$C_{commit} = C_h \cdot T_{horas}$$
 
+4. **Estimación de Deuda Técnica ($C_{deuda}$):**
+   $$C_{deuda} = 3 \cdot \sum C_{commit\_deuda}$$
+   (Estimación a futuro con un factor multiplicador de 3x).
+
 ---
 
 ## 📦 Instalacion
 
 1. **Clonar el repositorio:**
+
    ```bash
    git clone https://github.com/MetApogeo/OraculusDev.git
    cd OraculusDev
    ```
 
 2. **Instalar el proyecto de forma global en modo editable:**
+
    ```bash
    pip install -e .
    ```
+
    Esto instalará todas las dependencias requeridas (`requests`, `python-dotenv`, `click`, `rich`) y registrará el comando `oraculus` en tu terminal de forma global.
 
 3. **(Opcional) Configurar GITHUB_TOKEN:**
@@ -79,22 +86,26 @@ oraculus analyze [OPCIONES]
 ```
 
 ### Opciones Disponibles
-* `--repo TEXT`: Ruta local del repositorio (por ejemplo, `.`) o repositorio remoto en formato `usuario/repo` (por ejemplo, `MetApogeo/OraculusDev`). [Por defecto: `.`].
-* `--limite INTEGER`: Número de commits a analizar en el historial. [Por defecto: `10`].
-* `--salario FLOAT`: Salario mensual promedio en USD. Si se omite, la CLI te lo solicitará de forma interactiva.
-* `--horas INTEGER`: Horas efectivas trabajadas al mes. [Por defecto: `160`].
-* `--loc-por-hora FLOAT`: Promedio de Líneas de Código (LOC) escritas por hora. [Por defecto: `60.0`].
+
+- `--repo TEXT`: Ruta local del repositorio (por ejemplo, `.`) o repositorio remoto en formato `usuario/repo` (por ejemplo, `MetApogeo/OraculusDev`). [Por defecto: `.`].
+- `--limite INTEGER`: Número de commits a analizar en el historial. [Por defecto: `10`].
+- `--salario FLOAT`: Salario mensual promedio en USD. Si se omite, la CLI te lo solicitará de forma interactiva.
+- `--horas INTEGER`: Horas efectivas trabajadas al mes. [Por defecto: `160`].
+- `--loc-por-hora FLOAT`: Promedio de Líneas de Código (LOC) escritas por hora. [Por defecto: `60.0`].
 
 ### Ejemplo de Ejecución
+
 ```bash
 oraculus analyze --repo . --salario 3000 --limite 12
 ```
 
 ### Flujo de Análisis y Semáforo de Eficiencia
+
 Al finalizar las tablas detalladas de commits normales e independientes (outliers), la CLI te solicitará el **Presupuesto Estimado ($C_{esp}$)**. Al ingresarlo, calculará el **Índice de Eficiencia Financiera ($IEF$)** mostrando el estado con colores Cyberpunk en base a la tolerancia estándar del 20%:
-* **$IEF < 0.8$:** `[OK] Termino mas rapido de lo esperado` (Verde Neón)
-* **$0.8 \le IEF \le 1.2$:** `[OK] Rango aceptable (Dentro de lo esperado)` (Lavanda/Amarillo)
-* **$IEF > 1.2$:** `[ALERTA] Presupuesto excedido` (Rojo Neón)
+
+- **$IEF < 0.8$:** `[OK] Termino mas rapido de lo esperado` (Verde Neón)
+- **$0.8 \le IEF \le 1.2$:** `[OK] Rango aceptable (Dentro de lo esperado)` (Lavanda/Amarillo)
+- **$IEF > 1.2$:** `[ALERTA] Presupuesto excedido` (Rojo Neón)
 
 ---
 
