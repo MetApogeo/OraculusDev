@@ -51,22 +51,49 @@ def medir_cc_codigo(code: str) -> float:
     except Exception:
         return 0.0
 
-def calcular_delta_calidad(cc_antes: float, cc_despues: float, 
-                           loc_antes: int, loc_despues: int) -> str:
+def calcular_delta_calidad(
+    cc_antes: float, 
+    cc_despues: float, 
+    loc_antes: int, 
+    loc_despues: int,
+    mensaje: str = ""
+) -> str:
     if loc_antes == 0:
         return "FEATURE_LIMPIA"
         
-    delta_cc = cc_despues - cc_antes
     delta_loc = loc_despues - loc_antes
+    delta_cc = cc_despues - cc_antes
+    
+    # Capa 1: Conventional commits mandan
+    mensaje_lower = mensaje.lower()
+    es_feature = mensaje_lower.startswith("feat:")
+    es_refactor = mensaje_lower.startswith("refactor:")
+    es_fix = mensaje_lower.startswith("fix:")
+    
+    if es_feature or es_refactor:
+        # Un feat: nunca es deuda por definición
+        if delta_loc < 0 or delta_cc < 0:
+            return "OPTIMIZACION"
+        return "FEATURE_LIMPIA"
+    
+    # Capa 2: Densidad de complejidad
+    densidad_antes = cc_antes / max(loc_antes, 1)
+    densidad_despues = cc_despues / max(loc_despues, 1)
+    delta_densidad = densidad_despues - densidad_antes
+    
+    # Capa 3: Umbral de tolerancia del 50%
+    crecimiento_cc = delta_cc / max(cc_antes, 1)
     
     if delta_loc < 0 and delta_cc < 0:
         return "OPTIMIZACION"
-    elif delta_loc > 0 and delta_cc <= 0:
+    
+    if delta_loc > 0 and delta_densidad <= 0:
         return "FEATURE_LIMPIA"
-    elif delta_loc > 0 and delta_cc > 0:
+    
+    if delta_cc > 0 and crecimiento_cc > 0.5:
         return "DEUDA_TECNICA"
-    else:
-        return "NEUTRAL"
+    
+    return "NEUTRAL"
 
 def estimar_costo_deuda(commits_deuda: list) -> float:
     # La deuda técnica típicamente cuesta 3x su costo original en mantenimiento futuro.

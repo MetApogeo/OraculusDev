@@ -20,7 +20,7 @@ def obtener_contenido_revision(repo_path: str, revision: str, filepath: str) -> 
         return res.stdout.decode("utf-8", errors="ignore")
     return ""
 
-def analizar_calidad_commit(repo_cache_path: str, sha: str, lenguaje: str) -> str:
+def analizar_calidad_commit(repo_cache_path: str, sha: str, lenguaje: str, mensaje: str = "") -> str:
     if not repo_cache_path or lenguaje != "python":
         return "NEUTRAL"
         
@@ -44,7 +44,7 @@ def analizar_calidad_commit(repo_cache_path: str, sha: str, lenguaje: str) -> st
         
     cc_antes_avg = cc_antes_total / len(py_files)
     cc_despues_avg = cc_despues_total / len(py_files)
-    return calcular_delta_calidad(cc_antes_avg, cc_despues_avg, loc_antes_total, loc_despues_total)
+    return calcular_delta_calidad(cc_antes_avg, cc_despues_avg, loc_antes_total, loc_despues_total, mensaje)
 
 def ejecutar_motor_analisis(
     repo: str,
@@ -89,7 +89,7 @@ def ejecutar_motor_analisis(
         t, costo = realizar_calculos(c, salario, horas_efectivas, loc_por_hora)
         total_tiempo_normal += t
         total_costo_normal += costo
-        calidad = analizar_calidad_commit(repo_cache_path, c.sha, lenguaje)
+        calidad = analizar_calidad_commit(repo_cache_path, c.sha, lenguaje, c.mensaje)
         validos_procesados.append((c, t, costo, calidad))
 
     outliers_procesados = []
@@ -99,7 +99,7 @@ def ejecutar_motor_analisis(
         t, costo = realizar_calculos(c, salario, horas_efectivas, loc_por_hora)
         total_tiempo_outlier += t
         total_costo_outlier += costo
-        calidad = analizar_calidad_commit(repo_cache_path, c.sha, lenguaje)
+        calidad = analizar_calidad_commit(repo_cache_path, c.sha, lenguaje, c.mensaje)
         outliers_procesados.append((c, t, costo, calidad))
 
     costo_real = total_costo_normal + total_costo_outlier
