@@ -8,11 +8,17 @@ class CommitData:
     additions: int = 0
     deletions: int = 0
 
+def aplicar_tope(loc: int, loc_por_hora: float) -> int:
+    tope = int(8 * loc_por_hora)
+    return min(loc, tope)
+
 def realizar_calculos(commit: CommitData, salario: float, horas_mes: int, loc_por_hora: float = 60.0) -> Tuple[float, float]:
     costo_hora = salario / horas_mes
     loc_commit = commit.additions + commit.deletions
 
-    t_horas = loc_commit / loc_por_hora
+    loc_limpio = aplicar_tope(loc_commit, loc_por_hora)
+
+    t_horas = loc_limpio / loc_por_hora
     costo_monetario = costo_hora * t_horas
 
     return t_horas, costo_monetario

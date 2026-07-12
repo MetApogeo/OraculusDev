@@ -3,6 +3,7 @@ import requests
 import subprocess
 from typing import List
 from oraculus.core.metrics import CommitData
+from oraculus.utils.data_helpers import es_archivo_ignorado
 
 def es_local(entrada: str) -> bool:
     return os.path.exists(entrada)
@@ -53,16 +54,23 @@ def obtener_commits_api(repo_path: str, token: str) -> List[CommitData]:
             print(f"[Advertencia] Error de conexión al obtener detalles para el commit {sha[:7]}: {e}")
             continue
 
-        stats = res.get('stats') or {}
         mensaje = res['commit']['message'].splitlines()[0]
         if mensaje.startswith("Merge"):
             continue
 
+        additions_limpias = 0
+        deletions_limpias = 0
+        for file_entry in res.get('files', []):
+            filename = file_entry.get('filename', '')
+            if not es_archivo_ignorado(filename):
+                additions_limpias += file_entry.get('additions', 0)
+                deletions_limpias += file_entry.get('deletions', 0)
+
         lista_objetos.append(CommitData(
             sha=sha[:7],
             mensaje=mensaje,
-            additions=stats.get('additions', 0),
-            deletions=stats.get('deletions', 0)
+            additions=additions_limpias,
+            deletions=deletions_limpias
         ))
     return lista_objetos
 
@@ -114,12 +122,13 @@ def obtener_commits_local(repo_path: str, limit: int = 10) -> List[CommitData]:
             lista_objetos.append(current_commit)
         elif current_commit is not None:
             parts = line.split(None, 2)
-            if len(parts) >= 2:
-                add_str, del_str = parts[0], parts[1]
-                add_val = int(add_str) if add_str.isdigit() else 0
-                del_val = int(del_str) if del_str.isdigit() else 0
-                current_commit.additions += add_val
-                current_commit.deletions += del_val
+            if len(parts) >= 3:
+                add_str, del_str, filepath = parts[0], parts[1], parts[2]
+                if not es_archivo_ignorado(filepath):
+                    add_val = int(add_str) if add_str.isdigit() else 0
+                    del_val = int(del_str) if del_str.isdigit() else 0
+                    current_commit.additions += add_val
+                    current_commit.deletions += del_val
 
     return lista_objetos
 
