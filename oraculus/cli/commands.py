@@ -127,7 +127,10 @@ def limpiar_unicode_consola(texto: str) -> str:
 
 @click.command("history")
 @click.option("--open", "abrir", type=int, default=None, help="Número del reporte a abrir")
-def history(abrir):
+@click.option("--compare", type=(int, int), default=None, help="Comparación lado a lado de dos análisis específicos (ej. --compare 1 3)")
+@click.option("--stats", is_flag=True, help="Estadísticas globales del historial de análisis")
+@click.option("--clean", is_flag=True, help="Eliminar reportes antiguos de forma interactiva")
+def history(abrir, compare, stats, clean):
     """Muestra el historial de análisis generados."""
     from oraculus.utils.history_manager import cargar_historial, abrir_reporte
     
@@ -136,6 +139,169 @@ def history(abrir):
             abrir_reporte(abrir)
         except Exception as e:
             click.echo(click.style(f"[Error] {e}", fg="red"))
+        return
+
+    if clean:
+        historial = cargar_historial()
+        if not historial:
+            click.echo("[Info] No hay análisis guardados aún.")
+            return
+            
+        click.echo("\n--- MENÚ DE LIMPIEZA DE REPORTES ---")
+        click.echo(f"Actualmente hay {len(historial)} análisis en el historial.")
+        click.echo("[1] Eliminar TODOS los reportes e historial")
+        click.echo("[2] Conservar solo los últimos 3 reportes y eliminar el resto")
+        click.echo("[3] Cancelar")
+        
+        opcion = click.prompt("Seleccione una opción", type=int, default=3)
+        if opcion == 1:
+            if click.confirm("¿Está seguro de eliminar TODOS los reportes físicamente y vaciar el historial?", default=False):
+                from oraculus.utils.history_manager import limpiar_historial_por_completo
+                limpiar_historial_por_completo()
+                click.echo(click.style("[Info] Historial y archivos de reportes eliminados por completo.", fg="green"))
+            else:
+                click.echo("[Info] Operación cancelada.")
+        elif opcion == 2:
+            if click.confirm("¿Está seguro de conservar solo los últimos 3 reportes y borrar físicamente los demás?", default=True):
+                from oraculus.utils.history_manager import conservar_ultimos_n_reportes
+                conservar_ultimos_n_reportes(3)
+                click.echo(click.style("[Info] Se conservaron los últimos 3 reportes. Los demás han sido eliminados.", fg="green"))
+            else:
+                click.echo("[Info] Operación cancelada.")
+        else:
+            click.echo("[Info] Operación cancelada.")
+        return
+
+    if stats:
+        historial = cargar_historial()
+        if not historial:
+            click.echo("[Info] No hay análisis guardados aún.")
+            return
+            
+        ief_vals = [item["ief"] for item in historial if item["ief"] is not None]
+        prom_ief_str = f"{sum(ief_vals)/len(ief_vals):.2f}" if ief_vals else "N/D"
+        
+        if ief_vals:
+            peor_entry = max(historial, key=lambda x: x["ief"] if x["ief"] is not None else -999999)
+            mejor_entry = min(historial, key=lambda x: x["ief"] if x["ief"] is not None else 999999)
+            peor_str = f"#{peor_entry['id']} (IEF {peor_entry['ief']:.2f})"
+            mejor_str = f"#{mejor_entry['id']} (IEF {mejor_entry['ief']:.2f})"
+        else:
+            peor_str = "N/D"
+            mejor_str = "N/D"
+            
+        deuda_acum = sum(item.get("costo_deuda", 0.0) for item in historial)
+        
+        from rich.panel import Panel
+        from rich import box
+        from rich.console import Console
+        from oraculus.cli.display import CyberpunkColors
+        
+        console = Console()
+        c = CyberpunkColors
+        
+        stats_content = (
+            f"  [bold {c.NEON_CYAN}]Promedio IEF:[/]    {prom_ief_str}\n"
+            f"  [bold {c.NEON_CYAN}]Peor análisis:[/]   {peor_str}\n"
+            f"  [bold {c.NEON_CYAN}]Mejor análisis:[/]  {mejor_str}\n"
+            f"  [bold {c.NEON_CYAN}]Deuda acumulada:[/] ${deuda_acum:.2f}"
+        )
+        
+        stats_content = limpiar_unicode_consola(stats_content)
+        console.print(Panel(
+            stats_content,
+            title=limpiar_unicode_consola(f"[bold {c.NEON_CYAN}]=== ESTADÍSTICAS GLOBALES DEL REPO ===[/bold {c.NEON_CYAN}]"),
+            box=box.ASCII,
+            border_style=c.NEON_CYAN,
+            width=55
+        ))
+        return
+
+    if compare is not None:
+        id1, id2 = compare
+        historial = cargar_historial()
+        
+        entry1 = next((item for item in historial if item.get("id") == id1), None)
+        entry2 = next((item for item in historial if item.get("id") == id2), None)
+        
+        if not entry1:
+            click.echo(click.style(f"[Error] No se encontró el análisis #{id1} en el historial.", fg="red"))
+            return
+        if not entry2:
+            click.echo(click.style(f"[Error] No se encontró el análisis #{id2} en el historial.", fg="red"))
+            return
+            
+        ief1 = entry1.get("ief")
+        ief2 = entry2.get("ief")
+        ief1_str = f"{ief1:.2f}" if ief1 is not None else "N/D"
+        ief2_str = f"{ief2:.2f}" if ief2 is not None else "N/D"
+        
+        riesgo1 = entry1.get("riesgo", "BAJO")
+        riesgo2 = entry2.get("riesgo", "BAJO")
+        
+        c_real1 = entry1.get("c_real", 0.0)
+        c_real2 = entry2.get("c_real", 0.0)
+        
+        deuda1 = entry1.get("costo_deuda", 0.0)
+        deuda2 = entry2.get("costo_deuda", 0.0)
+        
+        from oraculus.cli.display import CyberpunkColors
+        c = CyberpunkColors
+        
+        if ief1 is not None and ief2 is not None:
+            if ief2 > ief1:
+                trend_ief = f"[bold color(196)][↑ Deteriorando en IEF][/]"
+            elif ief2 < ief1:
+                trend_ief = f"[bold {c.NEON_GREEN}][↓ Mejorando en IEF][/]"
+            else:
+                trend_ief = f"[bold {c.TEXTO_P}][= Estable en IEF][/]"
+        else:
+            trend_ief = ""
+            
+        if deuda2 > deuda1:
+            trend_deuda = f"[bold color(196)][↑ Acumulando Deuda][/]"
+        elif deuda2 < deuda1:
+            trend_deuda = f"[bold {c.NEON_GREEN}][↓ Reduciendo Deuda][/]"
+        else:
+            trend_deuda = f"[bold {c.TEXTO_P}][= Estable en Deuda][/]"
+            
+        if trend_ief:
+            trend_msg = f"{trend_ief} | {trend_deuda}"
+        else:
+            trend_msg = trend_deuda
+            
+        from rich.table import Table
+        from rich.console import Console
+        from rich import box
+        
+        console = Console()
+        table = Table(
+            title=f"[bold {c.LOGO}]=== COMPARACIÓN DE ANÁLISIS ===[/]",
+            box=box.ASCII,
+            border_style=c.LOGO
+        )
+        table.add_column("Métrica", style=c.NEON_CYAN)
+        table.add_column(f"Análisis #{id1}", justify="center")
+        table.add_column(f"Análisis #{id2}", justify="center")
+        
+        def get_style_r(riesgo_val):
+            if riesgo_val == "CRITICO":
+                return f"bold {c.NEON_RED}"
+            elif riesgo_val == "ALTO":
+                return "bold color(208)"
+            elif riesgo_val == "MODERADO":
+                return "bold color(226)"
+            return f"bold {c.NEON_GREEN}"
+            
+        table.add_row("IEF", ief1_str, ief2_str)
+        table.add_row("Riesgo", f"[{get_style_r(riesgo1)}]{riesgo1}[/]", f"[{get_style_r(riesgo2)}]{riesgo2}[/]")
+        table.add_row("Costo real", f"${c_real1:.2f}", f"${c_real2:.2f}")
+        table.add_row("Deuda detectada", f"${deuda1:.2f}", f"${deuda2:.2f}")
+        
+        console.print(table)
+        
+        trend_msg_cleaned = limpiar_unicode_consola(f"  [bold {c.NEON_CYAN}]Tendencia:[/] {trend_msg}")
+        console.print(trend_msg_cleaned)
         return
 
     historial = cargar_historial()

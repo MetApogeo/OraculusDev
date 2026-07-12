@@ -66,3 +66,47 @@ def abrir_reporte(numero: int) -> None:
                 else:
                     raise FileNotFoundError(f"El archivo de reporte '{archivo}' no existe en {reports_dir}.")
     raise ValueError(f"No se encontró ningún reporte con ID #{numero}.")
+
+def eliminar_reporte_fisico(archivo: str) -> None:
+    if not archivo:
+        return
+    reports_dir = os.path.join(os.getcwd(), "oraculus_reports")
+    filepath = os.path.abspath(os.path.join(reports_dir, archivo))
+    if os.path.exists(filepath):
+        try:
+            os.remove(filepath)
+        except Exception:
+            pass
+
+def limpiar_historial_por_completo() -> None:
+    historial = cargar_historial()
+    for item in historial:
+        eliminar_reporte_fisico(item.get("archivo"))
+    reports_dir = os.path.join(os.getcwd(), "oraculus_reports")
+    index_path = os.path.join(reports_dir, "index.json")
+    if os.path.exists(index_path):
+        try:
+            os.remove(index_path)
+        except Exception:
+            pass
+
+def conservar_ultimos_n_reportes(n: int) -> None:
+    historial = cargar_historial()
+    if len(historial) <= n:
+        return
+    
+    # Reportes a eliminar
+    a_eliminar = historial[:-n]
+    a_conservar = historial[-n:]
+    
+    for item in a_eliminar:
+        eliminar_reporte_fisico(item.get("archivo"))
+        
+    reports_dir = os.path.join(os.getcwd(), "oraculus_reports")
+    index_path = os.path.join(reports_dir, "index.json")
+    
+    try:
+        with open(index_path, "w", encoding="utf-8") as f:
+            json.dump(a_conservar, f, indent=2, ensure_ascii=False)
+    except Exception:
+        pass
