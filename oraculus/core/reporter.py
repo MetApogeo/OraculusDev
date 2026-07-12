@@ -75,6 +75,7 @@ def generar_grafica_costos(df) -> str:
     
     # Ajustar estilos Cyberpunk
     fig.update_layout(
+        autosize=True,
         paper_bgcolor="#1A1A1A",
         plot_bgcolor="#1A1A1A",
         font_color="#FFFFFF",
@@ -85,7 +86,7 @@ def generar_grafica_costos(df) -> str:
         height=380
     )
     
-    return pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
+    return pio.to_html(fig, full_html=False, include_plotlyjs='cdn', config={'responsive': True})
 
 def generar_grafica_calidad(df) -> str:
     import plotly.express as px
@@ -113,6 +114,7 @@ def generar_grafica_calidad(df) -> str:
     )
     
     fig.update_layout(
+        autosize=True,
         paper_bgcolor="#1A1A1A",
         plot_bgcolor="#1A1A1A",
         font_color="#FFFFFF",
@@ -121,7 +123,7 @@ def generar_grafica_calidad(df) -> str:
         height=380
     )
     
-    return pio.to_html(fig, full_html=False, include_plotlyjs=False)
+    return pio.to_html(fig, full_html=False, include_plotlyjs=False, config={'responsive': True})
 
 def generar_reporte_html(resultados: dict, repo: str, c_esp: float = None) -> str:
     from oraculus.utils.data_helpers import commits_a_dataframe, resumen_a_series
@@ -410,6 +412,65 @@ def generar_reporte_html(resultados: dict, repo: str, c_esp: float = None) -> st
         .highlight-green {{ color: #00FF66; }}
         .highlight-cyan {{ color: #00E6FF; }}
         
+        #btn-export {{
+            background: transparent;
+            border: 2px solid #AA00FF;
+            color: #AA00FF;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            padding: 10px 24px;
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }}
+
+        #btn-export:hover {{
+            background: #AA00FF;
+            color: #121212;
+            box-shadow: 0 0 20px rgba(170, 0, 255, 0.5);
+        }}
+
+        @media print {{
+            #btn-export {{ display: none !important; }}
+            
+            body {{
+                background: #121212 !important;
+                color: #FFFFFF !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }}
+            
+            .container {{
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }}
+
+            .grid-charts {{
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }}
+
+            .chart-box, .card, .panel {{
+                page-break-inside: avoid !important;
+            }}
+
+            table {{
+                width: 100% !important;
+                font-size: 11px !important;
+            }}
+
+            th, td {{
+                padding: 8px 4px !important;
+            }}
+            
+            tr {{
+                page-break-inside: avoid !important;
+            }}
+        }}
+
         footer {{
             text-align: center;
             color: #555555;
@@ -428,7 +489,8 @@ def generar_reporte_html(resultados: dict, repo: str, c_esp: float = None) -> st
                 <h1>ORACULUS</h1>
             </div>
             <div class="metadata">
-                <div>Repositorio: <strong>{repo_name}</strong></div>
+                <button onclick="window.print()" id="btn-export">⬇ Exportar como PDF</button>
+                <div style="margin-top: 5px;">Repositorio: <strong>{repo_name}</strong></div>
                 <div>Generado: <strong>{fecha_reporte}</strong></div>
             </div>
         </header>
