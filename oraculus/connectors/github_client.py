@@ -1,9 +1,11 @@
 import os
 import requests
 import subprocess
+import shutil
 from typing import List
 from oraculus.core.metrics import CommitData
 from oraculus.utils.data_helpers import es_archivo_ignorado
+from oraculus.utils.i18n import t
 
 def es_local(entrada: str) -> bool:
     return os.path.exists(entrada)
@@ -183,7 +185,7 @@ def clonar_local_a_cache(ruta_local: str) -> str:
         except Exception:
             subprocess.run(["rmdir", "/s", "/q", dest_path], shell=True)
             
-    print(f"[Info] Copiando/Clonando repositorio local '{ruta_local}' a cache para analisis seguro...")
+    print(t('cli', 'info_clonando_local').format(ruta=ruta_local))
     cmd = ["git", "clone", "--quiet", abs_path, dest_path]
     try:
         result = subprocess.run(cmd, capture_output=True, check=False)
@@ -201,7 +203,7 @@ def preparar_repositorio_analisis(repo: str, limite: int, token: str = None):
             commits = obtener_commits_local(cache_path, limite)
             return commits, cache_path, True
         except Exception as e:
-            print(f"[Advertencia] Error al clonar local a cache: {e}. Usando repositorio directo.")
+            print(t('cli', 'advertencia_error_clone').format(error=e))
             commits = obtener_commits_local(repo, limite)
             return commits, repo, True
     else:
@@ -217,12 +219,12 @@ def preparar_repositorio_analisis(repo: str, limite: int, token: str = None):
             commits = clonar_y_obtener_commits(repo, limite, token)
             return commits, cache_path, False
         except Exception as clone_err:
-            print(f"[Info] Clonado local no disponible ({clone_err}). Reintentando via GitHub API...")
+            print(t('cli', 'info_clone_api_fallback').format(error=clone_err))
             limite_api = 5 if limite > 5 else limite
             try:
                 commits = obtener_commits_api(repo, token)[:limite_api]
             except Exception as api_err:
-                print(f"[Error] Fallo la conexion a la API de GitHub: {api_err}")
+                print(t('cli', 'error_api_github').format(error=api_err))
                 commits = []
             return commits, None, False
 

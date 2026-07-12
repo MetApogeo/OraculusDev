@@ -87,7 +87,11 @@
     "error_salario_positivo": "[Error] El salario debe ser mayor que 0.",
     "error_salario_invalido": "[Error] Salario invalido (debe ser un numero).",
     "config_success": "[Info] Idioma configurado a '{lang}' con éxito.",
-    "config_invalid_lang": "[Error] Idioma inválido. Debe ser 'es', 'en' o 'fr'."
+    "config_invalid_lang": "[Error] Idioma inválido. Debe ser 'es', 'en' o 'fr'.",
+    "info_clonando_local": "[Info] Copiando/Clonando repositorio local '{ruta}' a cache para analisis seguro...",
+    "advertencia_error_clone": "[Advertencia] Error al clonar local a cache: {error}. Usando repositorio directo.",
+    "info_clone_api_fallback": "[Info] Clonado local no disponible ({error}). Reintentando via GitHub API...",
+    "error_api_github": "[Error] Fallo la conexion a la API de GitHub: {error}"
   },
   "report": {
     "title": "Reporte Financiero de Código - Oraculus",
