@@ -2,6 +2,9 @@ import click
 from oraculus.utils.config import cargar_entorno
 from oraculus.core.engine import ejecutar_motor_analisis
 from oraculus.cli.display import mostrar_reporte, mostrar_resumen_financiero, mostrar_banner
+from oraculus.utils.i18n import t, inicializar_i18n
+
+inicializar_i18n()
 
 @click.group()
 def cli():
@@ -23,7 +26,7 @@ def analyze(repo, limite, salario, horas, loc_por_hora, python, php, js):
     cargar_entorno(repo if es_local_path(repo) else None)
 
     if salario is None:
-        salario = click.prompt("Salario mensual promedio (USD)", type=float)
+        salario = click.prompt(t('cli', 'input_salario').rstrip(': '), type=float)
 
     lenguaje = None
     if python:
@@ -72,18 +75,18 @@ def analyze(repo, limite, salario, horas, loc_por_hora, python, php, js):
         mostrar_reporte(resultados, salario, horas, loc_por_hora)
         
         c_esp = None
-        c_esp_input = click.prompt("Presupuesto (C_esp) [Presiona Enter para omitir]", default="", show_default=False).strip()
+        c_esp_input = click.prompt(t('cli', 'input_presupuesto').rstrip(': '), default="", show_default=False).strip()
         if c_esp_input:
             try:
                 val = float(c_esp_input)
                 if val <= 0:
-                    click.echo("[Error] El presupuesto debe ser mayor que 0.")
+                    click.echo(t('cli', 'error_presupuesto_positivo'))
                     mostrar_resumen_financiero(resultados)
                 else:
                     c_esp = val
                     mostrar_resumen_financiero(resultados, c_esp)
             except ValueError:
-                click.echo("[Error] Presupuesto invalido (debe ser un numero).")
+                click.echo(t('cli', 'error_presupuesto_invalido'))
                 mostrar_resumen_financiero(resultados)
         else:
             mostrar_resumen_financiero(resultados)
@@ -100,8 +103,8 @@ def analyze(repo, limite, salario, horas, loc_por_hora, python, php, js):
             html = generar_reporte_html(resultados, repo, c_esp)
             ruta = guardar_reporte(html, repo, resultados)
             ruta_abs = os.path.abspath(ruta)
-            click.echo(f"[Info] Reporte generado en: oraculus_reports/{os.path.basename(ruta_abs)}")
-            click.echo("[Info] Abriendo en el navegador...")
+            click.echo(t('cli', 'report_generated').format(filename=os.path.basename(ruta_abs)))
+            click.echo(t('cli', 'opening_browser'))
             webbrowser.open(ruta_abs)
 
     except Exception as e:
@@ -409,3 +412,25 @@ def history(abrir, compare, stats, clean):
 
 cli.add_command(analyze)
 cli.add_command(history)
+
+
+@click.group(name="config")
+def config_group():
+    """Configurar preferencias de Oraculus (idioma, etc.)."""
+    pass
+
+
+@config_group.command(name="lang")
+@click.argument("idioma", type=click.Choice(["es", "en", "fr"], case_sensitive=False))
+def config_lang(idioma: str):
+    """Cambia el idioma de la interfaz. Idiomas disponibles: es, en, fr."""
+    from oraculus.utils.i18n import cambiar_idioma_configurado
+    try:
+        cambiar_idioma_configurado(idioma)
+        # Usar t() DESPUÉS de cambiar el idioma para el mensaje en el nuevo idioma
+        click.echo(t('cli', 'config_success').format(lang=idioma))
+    except Exception as e:
+        click.echo(click.style(f"[Error] {e}", fg="red"))
+
+
+cli.add_command(config_group)

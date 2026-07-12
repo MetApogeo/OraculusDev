@@ -127,6 +127,8 @@ def generar_grafica_calidad(df) -> str:
 
 def generar_reporte_html(resultados: dict, repo: str, c_esp: float = None) -> str:
     from oraculus.utils.data_helpers import commits_a_dataframe, resumen_a_series
+    from oraculus.utils.i18n import t_dict
+    tr = t_dict("report")
     
     # 1. Obtener DataFrames y Series
     df = commits_a_dataframe(resultados.get("commits_validos", []), resultados.get("commits_outliers", []))
@@ -151,17 +153,17 @@ def generar_reporte_html(resultados: dict, repo: str, c_esp: float = None) -> st
         ief = costo_real / c_esp
         if ief < 0.8:
             color_ief = "#00FF66"
-            status_ief = "Terminó más rápido de lo esperado"
+            status_ief = tr.get("ief_ok_fast", "Terminó más rápido de lo esperado")
         elif ief <= 1.2:
             color_ief = "#00E6FF"
-            status_ief = "Rango aceptable"
+            status_ief = tr.get("ief_ok_range", "Rango aceptable")
         else:
             color_ief = "#FF1493"
-            status_ief = "Presupuesto excedido"
+            status_ief = tr.get("ief_exceeded", "Presupuesto excedido")
             
         ief_card_html = f"""
         <div class="card accent" style="border-color: {color_ief}; box-shadow: 0 0 8px {color_ief}4D;">
-            <h3>Índice IEF</h3>
+            <h3>{tr.get('ief_title', 'IEF')}</h3>
             <div class="value" style="color: {color_ief};">{ief:.2f}</div>
             <div class="subtitle">{status_ief}</div>
         </div>
@@ -193,23 +195,23 @@ def generar_reporte_html(resultados: dict, repo: str, c_esp: float = None) -> st
             
         riesgo_card_html = f"""
         <div class="card accent" style="border-color: {color_riesgo}; box-shadow: 0 0 8px {color_riesgo}4D;">
-            <h3>Riesgo de Negocio</h3>
+            <h3>{tr.get('risk_title', 'Riesgo de Negocio')}</h3>
             <div class="value" style="color: {color_riesgo};">{nivel}</div>
-            <div class="subtitle">Retraso est.: +{retraso}%</div>
+            <div class="subtitle">{tr.get('risk_desc', 'Retraso est.')} +{retraso}%</div>
         </div>
         """
         
         riesgo_panel_html = f"""
         <div class="panel" style="border-color: {color_riesgo}; box-shadow: 0 0 10px {color_riesgo}22;">
-            <h2>EVALUACIÓN DE RIESGO DE NEGOCIO</h2>
+            <h2>{tr.get('risk_assessment', 'EVALUACIÓN DE RIESGO DE NEGOCIO')}</h2>
             <div class="badge-risk {class_riesgo}">RIESGO {nivel}</div>
-            <p><strong>[! RIESGO DE BLOQUEO]</strong> Probabilidad de retraso en próximos entregables: <strong>+{retraso}%</strong></p>
-            <h3>COSTO DE OPORTUNIDAD</h3>
-            <p>Mitigar deuda hoy: <strong class="highlight-green">${costo_mitigar:.2f}</strong></p>
-            <p>Ignorar un sprint más: <strong class="highlight-red">${costo_ignorar:.2f}</strong></p>
-            <p>Pérdida neta de eficiencia: <strong class="highlight-red">{perdida_eficiencia:.0f}%</strong></p>
-            <h3>RECOMENDACIÓN PARA EL PM:</h3>
-            <p style="color: {color_riesgo}; font-weight: bold;">Detener nuevas features y priorizar refactorización antes del siguiente sprint.</p>
+            <p><strong>{tr.get('risk_bloqueo', '[! RIESGO DE BLOQUEO]')}</strong> {tr.get('risk_probability', 'Probabilidad de retraso:')} <strong>+{retraso}%</strong></p>
+            <h3>{tr.get('costo_oportunidad', 'COSTO DE OPORTUNIDAD')}</h3>
+            <p>{tr.get('mitigar_deuda_hoy', 'Mitigar deuda hoy:')} <strong class="highlight-green">${costo_mitigar:.2f}</strong></p>
+            <p>{tr.get('ignorar_sprint', 'Ignorar un sprint más:')} <strong class="highlight-red">${costo_ignorar:.2f}</strong></p>
+            <p>{tr.get('perdida_eficiencia', 'Pérdida neta:')} <strong class="highlight-red">{perdida_eficiencia:.0f}%</strong></p>
+            <h3>{tr.get('recomendacion_pm', 'RECOMENDACIÓN PARA EL PM:')}</h3>
+            <p style="color: {color_riesgo}; font-weight: bold;">{tr.get('detener_features_pm', 'Detener nuevas features y priorizar refactorización antes del siguiente sprint.')}</p>
         </div>
         """
         
@@ -236,10 +238,10 @@ def generar_reporte_html(resultados: dict, repo: str, c_esp: float = None) -> st
         costo_futuro_deuda = costo_actual_deuda * 3.0
         deuda_panel_html = f"""
         <div class="panel" style="border-color: #FF1493;">
-            <h2>DEUDA TÉCNICA DETECTADA</h2>
-            <p>Se identificaron <strong>{len(commits_deuda_df)}</strong> commits que incrementan la complejidad ciclomática del código.</p>
-            <p>Costo de desarrollo actual: <strong class="highlight-cyan">${costo_actual_deuda:.2f}</strong></p>
-            <p>Costo futuro estimado de mantenimiento: <strong class="highlight-red">${costo_futuro_deuda:.2f}</strong> (factor multiplicador 3x)</p>
+            <h2>{tr.get('deuda_tecnica_detectada', 'DEUDA TÉCNICA DETECTADA')}</h2>
+            <p>{tr.get('commits_deuda', 'Commits con deuda:')} <strong>{len(commits_deuda_df)}</strong></p>
+            <p>{tr.get('costo_mitigacion', 'Costo de mitigación hoy:')} <strong class="highlight-cyan">${costo_actual_deuda:.2f}</strong></p>
+            <p>{tr.get('costo_futuro_estimado', 'Costo futuro estimado (factor 3x):')} <strong class="highlight-red">${costo_futuro_deuda:.2f}</strong></p>
         </div>
         """
 
@@ -489,22 +491,22 @@ def generar_reporte_html(resultados: dict, repo: str, c_esp: float = None) -> st
                 <h1>ORACULUS</h1>
             </div>
             <div class="metadata">
-                <button onclick="window.print()" id="btn-export">⬇ Exportar como PDF</button>
-                <div style="margin-top: 5px;">Repositorio: <strong>{repo_name}</strong></div>
-                <div>Generado: <strong>{fecha_reporte}</strong></div>
+                <button onclick="window.print()" id="btn-export">{tr.get('btn_export', '⬇ Exportar como PDF')}</button>
+                <div style="margin-top: 5px;">{tr.get('metadata_repo', 'Repositorio:')} <strong>{repo_name}</strong></div>
+                <div>{tr.get('metadata_generated', 'Generado:')} <strong>{fecha_reporte}</strong></div>
             </div>
         </header>
 
         <section class="grid-cards">
             <div class="card">
-                <h3>Costo Real (C_real)</h3>
+                <h3>{tr.get('c_real_title', 'Costo Real (C_real)')}</h3>
                 <div class="value" style="color: #00E6FF;">${resumen["costo_real"]:.2f}</div>
-                <div class="subtitle">Esfuerzo invertido</div>
+                <div class="subtitle">{tr.get('c_real_desc', 'Esfuerzo invertido')}</div>
             </div>
             <div class="card">
-                <h3>Presupuesto</h3>
-                <div class="value" style="color: #FFFFFF;">{"N/D" if c_esp is None else f"${c_esp:.2f}"}</div>
-                <div class="subtitle">Presupuesto asignado</div>
+                <h3>{tr.get('budget_title', 'Presupuesto')}</h3>
+                <div class="value" style="color: #FFFFFF;">{tr.get('val_nd', 'N/D') if c_esp is None else f'${c_esp:.2f}'}</div>
+                <div class="subtitle">{tr.get('budget_desc', 'Presupuesto asignado')}</div>
             </div>
             {ief_card_html}
             {riesgo_card_html}
@@ -523,16 +525,16 @@ def generar_reporte_html(resultados: dict, repo: str, c_esp: float = None) -> st
         {deuda_panel_html}
 
         <section class="panel">
-            <h2>HISTORIAL DE COMMITS ANALIZADOS</h2>
+            <h2>{tr.get('tabla_commits_titulo', 'HISTORIAL DE COMMITS ANALIZADOS')}</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>SHA</th>
-                        <th>Mensaje</th>
-                        <th>LOC</th>
-                        <th>Tiempo Est.</th>
-                        <th>Costo Est.</th>
-                        <th>Calidad</th>
+                        <th>{tr.get('col_sha', 'SHA')}</th>
+                        <th>{tr.get('col_mensaje', 'Mensaje')}</th>
+                        <th>{tr.get('col_loc', 'LOC')}</th>
+                        <th>{tr.get('col_tiempo', 'Tiempo Est.')}</th>
+                        <th>{tr.get('col_costo', 'Costo Est.')}</th>
+                        <th>{tr.get('col_calidad', 'Calidad')}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -542,7 +544,7 @@ def generar_reporte_html(resultados: dict, repo: str, c_esp: float = None) -> st
         </section>
 
         <footer>
-            Oraculus Financial Telemetry System &copy; {datetime.now().year} - MetApogeo
+            {tr.get('footer_text', 'Oraculus Financial Telemetry System')} &copy; {datetime.now().year} - MetApogeo
         </footer>
     </div>
 </body>
