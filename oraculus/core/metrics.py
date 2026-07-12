@@ -99,3 +99,39 @@ def estimar_costo_deuda(commits_deuda: list) -> float:
     # La deuda técnica típicamente cuesta 3x su costo original en mantenimiento futuro.
     # commits_deuda es una lista de tuplas (commit_data, tiempo_est, costo_est, calidad)
     return sum(item[2] for item in commits_deuda) * 3.0
+
+def evaluar_riesgo_negocio(
+    commits_deuda: list,
+    total_commits: int,
+    costo_real: float,
+    costo_futuro: float
+) -> dict:
+    cantidad_deuda = len(commits_deuda)
+    porcentaje_deuda = cantidad_deuda / max(total_commits, 1)
+    
+    if costo_real <= 0:
+        perdida_eficiencia = 0.0
+    else:
+        perdida_eficiencia = ((costo_futuro - costo_real) / costo_real) * 100
+        
+    # Nivel de riesgo basado en porcentaje de commits con deuda
+    if porcentaje_deuda >= 0.5:
+        nivel = "CRITICO"
+        retraso = 60
+    elif porcentaje_deuda >= 0.3:
+        nivel = "ALTO"
+        retraso = 40
+    elif porcentaje_deuda >= 0.1:
+        nivel = "MODERADO"
+        retraso = 20
+    else:
+        nivel = "BAJO"
+        retraso = 0
+        
+    return {
+        "nivel": nivel,
+        "retraso_estimado": retraso,
+        "costo_mitigar_hoy": costo_real,
+        "costo_ignorar": costo_futuro,
+        "perdida_eficiencia": perdida_eficiencia
+    }

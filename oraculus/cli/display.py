@@ -153,7 +153,45 @@ def mostrar_resumen_financiero(resultados: Dict[str, Any], c_esp: float = None):
             border_style=c.NEON_RED
         ))
     
-    # 2. Resumen Consolidado Principal
+    # 2. Evaluar Riesgo de Negocio
+    riesgo = resultados.get("riesgo")
+    if riesgo and riesgo["nivel"] != "BAJO":
+        nivel = riesgo["nivel"]
+        retraso = riesgo["retraso_estimado"]
+        costo_mitigar = riesgo["costo_mitigar_hoy"]
+        costo_ignorar = riesgo["costo_ignorar"]
+        perdida_eficiencia = riesgo["perdida_eficiencia"]
+        
+        if nivel == "CRITICO":
+            color_nivel = c.NEON_RED
+        elif nivel == "ALTO":
+            color_nivel = "color(208)"
+        elif nivel == "MODERADO":
+            color_nivel = "color(226)"
+        else:
+            color_nivel = c.NEON_GREEN
+            
+        risk_panel_content = (
+            f"  [bold {c.TEXTO_P}]Nivel de Riesgo:[/]      [bold {color_nivel}][{nivel}][/bold {color_nivel}]\n\n"
+            f"  [bold {color_nivel}][! RIESGO DE BLOQUEO][/bold {color_nivel}]\n"
+            f"  Probabilidad de retraso en proximos entregables: [bold {color_nivel}]+{retraso}%[/bold {color_nivel}]\n\n"
+            f"  [bold {c.NEON_CYAN}]COSTO DE OPORTUNIDAD[/bold {c.NEON_CYAN}]\n"
+            f"  Mitigar deuda hoy:     [bold {c.NEON_GREEN}]${costo_mitigar:.2f}[/bold {c.NEON_GREEN}]\n"
+            f"  Ignorar un sprint mas: [bold {c.NEON_RED}]${costo_ignorar:.2f}[/bold {c.NEON_RED}]\n"
+            f"  Perdida neta:          [bold {c.NEON_RED}]{perdida_eficiencia:.0f}%[/bold {c.NEON_RED}]\n\n"
+            f"  [bold {c.NEON_CYAN}]RECOMENDACION PARA EL PM:[/bold {c.NEON_CYAN}]\n"
+            f"  Detener nuevas features y priorizar refactorizacion\n"
+            f"  antes del siguiente sprint."
+        )
+        
+        console.print("\n", Panel(
+            risk_panel_content,
+            title=f"[bold {color_nivel}]=== EVALUACION DE RIESGO DE NEGOCIO ===[/bold {color_nivel}]",
+            box=box.ASCII,
+            border_style=color_nivel
+        ))
+    
+    # 3. Resumen Consolidado Principal
     panel_content = (
         f"[bold {c.TEXTO_P}]Desarrollo Estandar:[/]  ${resultados['total_costo_normal']:.2f} (Tiempo: {resultados['total_tiempo_normal']:.2f}h)\n"
     )

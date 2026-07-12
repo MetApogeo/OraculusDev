@@ -1,7 +1,7 @@
 from typing import Dict, Any, List
 import subprocess
 from oraculus.connectors.github_client import preparar_repositorio_analisis
-from oraculus.core.metrics import CommitData, filtrar_outliers, realizar_calculos, medir_cc_codigo, calcular_delta_calidad
+from oraculus.core.metrics import CommitData, filtrar_outliers, realizar_calculos, medir_cc_codigo, calcular_delta_calidad, estimar_costo_deuda, evaluar_riesgo_negocio
 from oraculus.utils.config import obtener_github_token
 
 def obtener_archivos_modificados(repo_path: str, sha: str) -> List[str]:
@@ -69,7 +69,14 @@ def ejecutar_motor_analisis(
             "total_costo_normal": 0.0,
             "total_tiempo_normal": 0.0,
             "total_costo_outlier": 0.0,
-            "total_tiempo_outlier": 0.0
+            "total_tiempo_outlier": 0.0,
+            "riesgo": {
+                "nivel": "BAJO",
+                "retraso_estimado": 0,
+                "costo_mitigar_hoy": 0.0,
+                "costo_ignorar": 0.0,
+                "perdida_eficiencia": 0.0
+            }
         }
 
     # Auto-detección de lenguaje si es necesario
@@ -105,6 +112,23 @@ def ejecutar_motor_analisis(
     costo_real = total_costo_normal + total_costo_outlier
     tiempo_total = total_tiempo_normal + total_tiempo_outlier
 
+    # Calcular riesgo de negocio
+    commits_deuda = []
+    for item in validos_procesados:
+        if item[3] == "DEUDA_TECNICA":
+            commits_deuda.append(item)
+    for item in outliers_procesados:
+        if item[3] == "DEUDA_TECNICA":
+            commits_deuda.append(item)
+
+    costo_futuro_estimado = estimar_costo_deuda(commits_deuda)
+    riesgo = evaluar_riesgo_negocio(
+        commits_deuda=commits_deuda,
+        total_commits=len(commits),
+        costo_real=costo_real,
+        costo_futuro=costo_futuro_estimado
+    )
+
     return {
         "repo": repo,
         "es_local": es_repo_local,
@@ -115,5 +139,6 @@ def ejecutar_motor_analisis(
         "total_costo_normal": total_costo_normal,
         "total_tiempo_normal": total_tiempo_normal,
         "total_costo_outlier": total_costo_outlier,
-        "total_tiempo_outlier": total_tiempo_outlier
+        "total_tiempo_outlier": total_tiempo_outlier,
+        "riesgo": riesgo
     }
