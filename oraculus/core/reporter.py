@@ -4,19 +4,44 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any
 
-def cargar_logo_base64() -> str:
-    # Ruta relativa al directorio docs/src/isotipo.png
-    ruta = Path(__file__).parent.parent.parent / "docs" / "src" / "isotipo.png"
+def cargar_logo_svg() -> str:
+    # Ruta relativa al directorio docs/src/oraculus svg.svg
+    ruta = Path(__file__).parent.parent.parent / "docs" / "src" / "oraculus svg.svg"
     try:
-        with open(ruta, "rb") as f:
-            return base64.b64encode(f.read()).decode("utf-8")
+        with open(ruta, "r", encoding="utf-8") as f:
+            return f.read().strip()
     except Exception:
         try:
-            ruta_cwd = Path.cwd() / "docs" / "src" / "isotipo.png"
-            with open(ruta_cwd, "rb") as f:
-                return base64.b64encode(f.read()).decode("utf-8")
+            ruta_cwd = Path.cwd() / "docs" / "src" / "oraculus svg.svg"
+            with open(ruta_cwd, "r", encoding="utf-8") as f:
+                return f.read().strip()
         except Exception:
             return ""
+
+def obtener_nombre_repositorio_git(repo: str) -> str:
+    import subprocess
+    import os
+    
+    if os.path.isdir(repo) or repo in (".", "./", ".\\"):
+        # Intentamos obtener la URL remota de git
+        try:
+            cmd = ["git", "-c", "safe.directory=*", "config", "--get", "remote.origin.url"]
+            res = subprocess.run(cmd, cwd=os.path.abspath(repo), capture_output=True, text=True, check=True)
+            url = res.stdout.strip()
+            if url:
+                # Limpiar la URL para obtener usuario/repo
+                if url.endswith(".git"):
+                    url = url[:-4]
+                if "github.com/" in url:
+                    url = url.split("github.com/")[-1]
+                elif "github.com:" in url:
+                    url = url.split("github.com:")[-1]
+                return url
+        except Exception:
+            pass
+        # Fallback si no hay git remote: usar el nombre del directorio
+        return os.path.basename(os.path.abspath(repo))
+    return repo
 
 def generar_grafica_costos(df) -> str:
     import plotly.express as px
@@ -105,11 +130,13 @@ def generar_reporte_html(resultados: dict, repo: str, c_esp: float = None) -> st
     df = commits_a_dataframe(resultados.get("commits_validos", []), resultados.get("commits_outliers", []))
     resumen = resumen_a_series(resultados)
     
-    # 2. Obtener Logo Base64
-    logo_base64 = cargar_logo_base64()
+    # 2. Obtener Logo SVG y Nombre del repositorio
+    logo_svg = cargar_logo_svg()
     logo_html = ""
-    if logo_base64:
-        logo_html = f'<img class="logo-img" src="data:image/png;base64,{logo_base64}" alt="Oraculus Logo">'
+    if logo_svg:
+        logo_html = '<div class="logo-svg-container">' + logo_svg + '</div>'
+    
+    repo_name = obtener_nombre_repositorio_git(repo)
     
     # 3. Gráficos Plotly
     grafica_costos = generar_grafica_costos(df)
@@ -247,9 +274,14 @@ def generar_reporte_html(resultados: dict, repo: str, c_esp: float = None) -> st
             align-items: center;
             gap: 20px;
         }}
-        .logo-img {{
-            max-height: 50px;
-            width: auto;
+        .logo-svg-container {{
+            width: 50px;
+            height: 50px;
+        }}
+        .logo-svg-container svg {{
+            width: 100%;
+            height: 100%;
+            display: block;
         }}
         header h1 {{
             margin: 0;
@@ -354,6 +386,7 @@ def generar_reporte_html(resultados: dict, repo: str, c_esp: float = None) -> st
             font-size: 11px;
             font-weight: bold;
             text-transform: uppercase;
+            white-space: nowrap;
         }}
         .badge.neutral {{ background-color: #333333; color: #CCCCCC; }}
         .badge.optimizacion {{ background-color: #004D61; color: #00E6FF; border: 1px solid #00E6FF; }}
@@ -392,10 +425,10 @@ def generar_reporte_html(resultados: dict, repo: str, c_esp: float = None) -> st
         <header>
             <div class="header-logo-title">
                 {logo_html}
-                <h1>OraculusDev</h1>
+                <h1>ORACULUS</h1>
             </div>
             <div class="metadata">
-                <div>Repositorio: <strong>{repo}</strong></div>
+                <div>Repositorio: <strong>{repo_name}</strong></div>
                 <div>Generado: <strong>{fecha_reporte}</strong></div>
             </div>
         </header>
@@ -447,7 +480,7 @@ def generar_reporte_html(resultados: dict, repo: str, c_esp: float = None) -> st
         </section>
 
         <footer>
-            Oraculus Financial Telemetry System &copy; {datetime.now().year} - Greenwood
+            Oraculus Financial Telemetry System &copy; {datetime.now().year} - MetApogeo
         </footer>
     </div>
 </body>
