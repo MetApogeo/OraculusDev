@@ -32,27 +32,27 @@ def analyze(repo, limite, salario, horas, loc_por_hora, python, php, js):
     if python:
         lenguaje = "python"
     elif php:
-        click.echo("[Info] PHP - Próximamente. Usando Python por ahora.")
+        click.echo(t('cli', 'info_php_proximamente'))
         lenguaje = "python"
     elif js:
-        click.echo("[Info] JavaScript - Próximamente. Usando Python por ahora.")
+        click.echo(t('cli', 'info_js_proximamente'))
         lenguaje = "python"
     else:
-        if click.confirm("¿Desea realizar el analisis de calidad de codigo?", default=True):
-            click.echo("\n¿Qué lenguaje deseas analizar?")
-            click.echo("  [ 1 ] Python   (Radon)")
-            click.echo("  [ 2 ] PHP      — Próximamente")
-            click.echo("  [ 3 ] JavaScript — Próximamente")
-            click.echo("  [ 4 ] Auto-detectar")
-            lang_choice = click.prompt("Seleccione una opcion [Por defecto: 1]", default="1", type=click.Choice(['1', '2', '3', '4']), show_choices=False)
+        if click.confirm(t('cli', 'confirm_calidad'), default=True):
+            click.echo("\n" + t('cli', 'lang_select_titulo'))
+            click.echo(t('cli', 'lang_option_python'))
+            click.echo(t('cli', 'lang_option_php'))
+            click.echo(t('cli', 'lang_option_js'))
+            click.echo(t('cli', 'lang_option_auto'))
+            lang_choice = click.prompt(t('cli', 'lang_prompt'), default="1", type=click.Choice(['1', '2', '3', '4']), show_choices=False)
 
             if lang_choice == "1":
                 lenguaje = "python"
             elif lang_choice == "2":
-                click.echo("[Info] PHP - Próximamente. Usando Python por ahora.")
+                click.echo(t('cli', 'info_php_proximamente'))
                 lenguaje = "python"
             elif lang_choice == "3":
-                click.echo("[Info] JavaScript - Próximamente. Usando Python por ahora.")
+                click.echo(t('cli', 'info_js_proximamente'))
                 lenguaje = "python"
             else:
                 lenguaje = "auto"
@@ -60,7 +60,7 @@ def analyze(repo, limite, salario, horas, loc_por_hora, python, php, js):
             lenguaje = "skip"
 
     if limite < 10:
-        click.echo("\n[Advertencia] Con menos de 10 commits el filtro IQR puede no ser representativo.")
+        click.echo("\n" + t('cli', 'advertencia_limite'))
 
     try:
         resultados = ejecutar_motor_analisis(
@@ -92,7 +92,7 @@ def analyze(repo, limite, salario, horas, loc_por_hora, python, php, js):
             mostrar_resumen_financiero(resultados)
 
         # Generar Reporte HTML
-        if click.confirm("\n¿Desea generar un reporte HTML?", default=True):
+        if click.confirm("\n" + t('cli', 'confirm_html'), default=True):
             from oraculus.core.reporter import generar_reporte_html, guardar_reporte
             import webbrowser
             import os
@@ -147,38 +147,38 @@ def history(abrir, compare, stats, clean):
     if clean:
         historial = cargar_historial()
         if not historial:
-            click.echo("[Info] No hay análisis guardados aún.")
+            click.echo(t('cli', 'no_history'))
             return
             
-        click.echo("\n--- MENÚ DE LIMPIEZA DE REPORTES ---")
-        click.echo(f"Actualmente hay {len(historial)} análisis en el historial.")
-        click.echo("[1] Eliminar TODOS los reportes e historial")
-        click.echo("[2] Conservar solo los últimos 3 reportes y eliminar el resto")
-        click.echo("[3] Cancelar")
+        click.echo("\n" + t('cli', 'menu_limpieza'))
+        click.echo(t('cli', 'analisis_actuales').format(cantidad=len(historial)))
+        click.echo(t('cli', 'opcion_eliminar_todo'))
+        click.echo(t('cli', 'opcion_conservar_3'))
+        click.echo(t('cli', 'opcion_cancelar'))
         
-        opcion = click.prompt("Seleccione una opción", type=int, default=3)
+        opcion = click.prompt(t('cli', 'seleccione_opcion'), type=int, default=3)
         if opcion == 1:
-            if click.confirm("¿Está seguro de eliminar TODOS los reportes físicamente y vaciar el historial?", default=False):
+            if click.confirm(t('cli', 'confirm_eliminar_todo'), default=False):
                 from oraculus.utils.history_manager import limpiar_historial_por_completo
                 limpiar_historial_por_completo()
-                click.echo(click.style("[Info] Historial y archivos de reportes eliminados por completo.", fg="green"))
+                click.echo(click.style(t('cli', 'limpieza_completa'), fg="green"))
             else:
-                click.echo("[Info] Operación cancelada.")
+                click.echo(t('cli', 'operacion_cancelada'))
         elif opcion == 2:
-            if click.confirm("¿Está seguro de conservar solo los últimos 3 reportes y borrar físicamente los demás?", default=True):
+            if click.confirm(t('cli', 'confirm_conservar_3'), default=True):
                 from oraculus.utils.history_manager import conservar_ultimos_n_reportes
                 conservar_ultimos_n_reportes(3)
-                click.echo(click.style("[Info] Se conservaron los últimos 3 reportes. Los demás han sido eliminados.", fg="green"))
+                click.echo(click.style(t('cli', 'limpieza_3'), fg="green"))
             else:
-                click.echo("[Info] Operación cancelada.")
+                click.echo(t('cli', 'operacion_cancelada'))
         else:
-            click.echo("[Info] Operación cancelada.")
+            click.echo(t('cli', 'operacion_cancelada'))
         return
 
     if stats:
         historial = cargar_historial()
         if not historial:
-            click.echo("[Info] No hay análisis guardados aún.")
+            click.echo(t('cli', 'no_history'))
             return
             
         ief_vals = [item["ief"] for item in historial if item["ief"] is not None]
@@ -205,15 +205,15 @@ def history(abrir, compare, stats, clean):
         
         stats_content = (
             f"  [bold {c.NEON_CYAN}]Promedio IEF:[/]    {prom_ief_str}\n"
-            f"  [bold {c.NEON_CYAN}]Peor análisis:[/]   {peor_str}\n"
-            f"  [bold {c.NEON_CYAN}]Mejor análisis:[/]  {mejor_str}\n"
-            f"  [bold {c.NEON_CYAN}]Deuda acumulada:[/] ${deuda_acum:.2f}"
+            f"  [bold {c.NEON_CYAN}]{t('cli', 'peor_analisis')}[/]   {peor_str}\n"
+            f"  [bold {c.NEON_CYAN}]{t('cli', 'mejor_analisis')}[/]  {mejor_str}\n"
+            f"  [bold {c.NEON_CYAN}]{t('cli', 'deuda_acumulada')}[/] ${deuda_acum:.2f}"
         )
         
         stats_content = limpiar_unicode_consola(stats_content)
         console.print(Panel(
             stats_content,
-            title=limpiar_unicode_consola(f"[bold {c.NEON_CYAN}]=== ESTADÍSTICAS GLOBALES DEL REPO ===[/bold {c.NEON_CYAN}]"),
+            title=limpiar_unicode_consola(f"[bold {c.NEON_CYAN}]{t('cli', 'stats_title')}[/bold {c.NEON_CYAN}]"),
             box=box.ASCII,
             border_style=c.NEON_CYAN,
             width=55
@@ -228,10 +228,10 @@ def history(abrir, compare, stats, clean):
         entry2 = next((item for item in historial if item.get("id") == id2), None)
         
         if not entry1:
-            click.echo(click.style(f"[Error] No se encontró el análisis #{id1} en el historial.", fg="red"))
+            click.echo(click.style(t('cli', 'error_no_report').format(id=id1), fg="red"))
             return
         if not entry2:
-            click.echo(click.style(f"[Error] No se encontró el análisis #{id2} en el historial.", fg="red"))
+            click.echo(click.style(t('cli', 'error_no_report').format(id=id2), fg="red"))
             return
             
         ief1 = entry1.get("ief")
@@ -253,20 +253,20 @@ def history(abrir, compare, stats, clean):
         
         if ief1 is not None and ief2 is not None:
             if ief2 > ief1:
-                trend_ief = f"[bold color(196)][↑ Deteriorando en IEF][/]"
+                trend_ief = f"[bold color(196)]{t('cli', 'comparar_tendencia_ief_deteriorando')}[/]"
             elif ief2 < ief1:
-                trend_ief = f"[bold {c.NEON_GREEN}][↓ Mejorando en IEF][/]"
+                trend_ief = f"[bold {c.NEON_GREEN}]{t('cli', 'comparar_tendencia_ief_mejorando')}[/]"
             else:
-                trend_ief = f"[bold {c.TEXTO_P}][= Estable en IEF][/]"
+                trend_ief = f"[bold {c.TEXTO_P}]{t('cli', 'comparar_tendencia_ief_estable')}[/]"
         else:
             trend_ief = ""
             
         if deuda2 > deuda1:
-            trend_deuda = f"[bold color(196)][↑ Acumulando Deuda][/]"
+            trend_deuda = f"[bold color(196)]{t('cli', 'comparar_tendencia_deuda_acumulando')}[/]"
         elif deuda2 < deuda1:
-            trend_deuda = f"[bold {c.NEON_GREEN}][↓ Reduciendo Deuda][/]"
+            trend_deuda = f"[bold {c.NEON_GREEN}]{t('cli', 'comparar_tendencia_deuda_reduciendo')}[/]"
         else:
-            trend_deuda = f"[bold {c.TEXTO_P}][= Estable en Deuda][/]"
+            trend_deuda = f"[bold {c.TEXTO_P}]{t('cli', 'comparar_tendencia_deuda_estable')}[/]"
             
         if trend_ief:
             trend_msg = f"{trend_ief} | {trend_deuda}"
@@ -279,13 +279,13 @@ def history(abrir, compare, stats, clean):
         
         console = Console()
         table = Table(
-            title=f"[bold {c.LOGO}]=== COMPARACIÓN DE ANÁLISIS ===[/]",
+            title=f"[bold {c.LOGO}]{t('cli', 'comparacion_title')}[/]",
             box=box.ASCII,
             border_style=c.LOGO
         )
-        table.add_column("Métrica", style=c.NEON_CYAN)
-        table.add_column(f"Análisis #{id1}", justify="center")
-        table.add_column(f"Análisis #{id2}", justify="center")
+        table.add_column(t('cli', 'metrica'), style=c.NEON_CYAN)
+        table.add_column(t('cli', 'analisis_num').format(id=id1), justify="center")
+        table.add_column(t('cli', 'analisis_num').format(id=id2), justify="center")
         
         def get_style_r(riesgo_val):
             if riesgo_val == "CRITICO":
@@ -303,13 +303,13 @@ def history(abrir, compare, stats, clean):
         
         console.print(table)
         
-        trend_msg_cleaned = limpiar_unicode_consola(f"  [bold {c.NEON_CYAN}]Tendencia:[/] {trend_msg}")
+        trend_msg_cleaned = limpiar_unicode_consola(f"  [bold {c.NEON_CYAN}]{t('cli', 'tendencia')}[/] {trend_msg}")
         console.print(trend_msg_cleaned)
         return
 
     historial = cargar_historial()
     if not historial:
-        click.echo("[Info] No hay análisis guardados aún.")
+        click.echo(t('cli', 'no_history'))
         return
 
     from rich.table import Table
@@ -322,15 +322,15 @@ def history(abrir, compare, stats, clean):
     c = CyberpunkColors
 
     table = Table(
-        title=f"[bold {c.LOGO}]=== HISTORIAL DE ANÁLISIS ===[/]",
+        title=f"[bold {c.LOGO}]{t('cli', 'historial_titulo')}[/]",
         box=box.ASCII,
         border_style=c.LOGO
     )
     table.add_column("#", style=c.NEON_CYAN, justify="center")
-    table.add_column("Repositorio", style=c.TEXTO_P, width=25)
+    table.add_column(t('cli', 'col_repositorio'), style=c.TEXTO_P, width=25)
     table.add_column("IEF", justify="right")
-    table.add_column("Riesgo", justify="center")
-    table.add_column("Fecha", justify="center", style=c.NEON_CYAN)
+    table.add_column(t('report', 'risk_title'), justify="center")
+    table.add_column(t('cli', 'col_fecha'), justify="center", style=c.NEON_CYAN)
 
     for item in historial:
         riesgo_val = item["riesgo"]
@@ -358,7 +358,7 @@ def history(abrir, compare, stats, clean):
         )
 
     console.print(table)
-    click.echo(f"Ejecuta: oraculus history --open <#> para abrir un reporte\n")
+    click.echo(t('cli', 'ejecuta_history_open') + "\n")
 
     # Tendencia del último repositorio analizado
     ultimo_repo = historial[-1]["repo"]
@@ -373,11 +373,11 @@ def history(abrir, compare, stats, clean):
             first_ief = valid_iefs[0]
             last_ief = valid_iefs[-1]
             if last_ief > first_ief:
-                ief_msg = " [bold color(196)][↑ Deteriorando][/]"
+                ief_msg = f" [bold color(196)]{t('cli', 'comparar_tendencia_ief_deteriorando')}[/]"
             elif last_ief < first_ief:
-                ief_msg = f" [bold {c.NEON_GREEN}][↓ Mejorando][/]"
+                ief_msg = f" [bold {c.NEON_GREEN}]{t('cli', 'comparar_tendencia_ief_mejorando')}[/]"
             else:
-                ief_msg = f" [bold {c.TEXTO_P}][= Estable][/]"
+                ief_msg = f" [bold {c.TEXTO_P}]{t('cli', 'comparar_tendencia_ief_estable')}[/]"
         else:
             ief_msg = ""
             
@@ -388,11 +388,11 @@ def history(abrir, compare, stats, clean):
         first_deuda = deudas[0]
         last_deuda = deudas[-1]
         if last_deuda > first_deuda:
-            deuda_msg = " [bold color(196)][↑ Acumulando][/]"
+            deuda_msg = f" [bold color(196)]{t('cli', 'comparar_tendencia_deuda_acumulando')}[/]"
         elif last_deuda < first_deuda:
-            deuda_msg = f" [bold {c.NEON_GREEN}][↓ Reduciendo][/]"
+            deuda_msg = f" [bold {c.NEON_GREEN}]{t('cli', 'comparar_tendencia_deuda_reduciendo')}[/]"
         else:
-            deuda_msg = f" [bold {c.TEXTO_P}][= Estable][/]"
+            deuda_msg = f" [bold {c.TEXTO_P}]{t('cli', 'comparar_tendencia_deuda_estable')}[/]"
             
         trend_content = (
             f"  [bold {c.NEON_CYAN}]IEF:[/]   {ief_trend_str}{ief_msg}\n"
@@ -400,7 +400,7 @@ def history(abrir, compare, stats, clean):
         )
         
         trend_content = limpiar_unicode_consola(trend_content)
-        trend_title = limpiar_unicode_consola(f"[bold {c.NEON_CYAN}]=== TENDENCIA: {ultimo_repo} ===[/bold {c.NEON_CYAN}]")
+        trend_title = limpiar_unicode_consola(f"[bold {c.NEON_CYAN}]=== {t('cli', 'tendencia').rstrip(':')} {ultimo_repo} ===[/bold {c.NEON_CYAN}]")
         
         console.print(Panel(
             trend_content,
