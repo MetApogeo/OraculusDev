@@ -71,20 +71,35 @@ def analyze(repo, limite, salario, horas, loc_por_hora, python, php, js):
         
         mostrar_reporte(resultados, salario, horas, loc_por_hora)
         
+        c_esp = None
         c_esp_input = click.prompt("Presupuesto (C_esp) [Presiona Enter para omitir]", default="", show_default=False).strip()
         if c_esp_input:
             try:
-                c_esp = float(c_esp_input)
-                if c_esp <= 0:
+                val = float(c_esp_input)
+                if val <= 0:
                     click.echo("[Error] El presupuesto debe ser mayor que 0.")
                     mostrar_resumen_financiero(resultados)
                 else:
+                    c_esp = val
                     mostrar_resumen_financiero(resultados, c_esp)
             except ValueError:
                 click.echo("[Error] Presupuesto invalido (debe ser un numero).")
                 mostrar_resumen_financiero(resultados)
         else:
             mostrar_resumen_financiero(resultados)
+
+        # Generar Reporte HTML
+        if click.confirm("\n¿Desea generar un reporte HTML?", default=True):
+            from oraculus.core.reporter import generar_reporte_html, guardar_reporte
+            import webbrowser
+            import os
+            
+            html = generar_reporte_html(resultados, repo, c_esp)
+            ruta = guardar_reporte(html, repo)
+            ruta_abs = os.path.abspath(ruta)
+            click.echo(f"[Info] Reporte generado en: oraculus_reports/{os.path.basename(ruta_abs)}")
+            click.echo("[Info] Abriendo en el navegador...")
+            webbrowser.open(ruta_abs)
 
     except Exception as e:
         click.echo(click.style(f"\n[Error] {e}", fg="red"))
