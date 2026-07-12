@@ -48,12 +48,62 @@ El sistema calcula actualmente el costo de la siguiente manera:
 
 ---
 
+## 📦 Instalacion
+
+1. **Clonar el repositorio:**
+   ```bash
+   git clone https://github.com/MetApogeo/OraculusDev.git
+   cd OraculusDev
+   ```
+
+2. **Instalar el proyecto de forma global en modo editable:**
+   ```bash
+   pip install -e .
+   ```
+   Esto instalará todas las dependencias requeridas (`requests`, `python-dotenv`, `click`, `rich`) y registrará el comando `oraculus` en tu terminal de forma global.
+
+3. **(Opcional) Configurar GITHUB_TOKEN:**
+   Crea un archivo `.env` en la raíz del proyecto para evitar límites de tasa al analizar repositorios remotos vía API de GitHub:
+   ```env
+   GITHUB_TOKEN=tu_token_aqui
+   ```
+
+---
+
+## 🚀 Uso
+
+El comando principal de la aplicación es `oraculus analyze`:
+
+```bash
+oraculus analyze [OPCIONES]
+```
+
+### Opciones Disponibles
+* `--repo TEXT`: Ruta local del repositorio (por ejemplo, `.`) o repositorio remoto en formato `usuario/repo` (por ejemplo, `MetApogeo/OraculusDev`). [Por defecto: `.`].
+* `--limite INTEGER`: Número de commits a analizar en el historial. [Por defecto: `10`].
+* `--salario FLOAT`: Salario mensual promedio en USD. Si se omite, la CLI te lo solicitará de forma interactiva.
+* `--horas INTEGER`: Horas efectivas trabajadas al mes. [Por defecto: `160`].
+* `--loc-por-hora FLOAT`: Promedio de Líneas de Código (LOC) escritas por hora. [Por defecto: `60.0`].
+
+### Ejemplo de Ejecución
+```bash
+oraculus analyze --repo . --salario 3000 --limite 12
+```
+
+### Flujo de Análisis y Semáforo de Eficiencia
+Al finalizar las tablas detalladas de commits normales e independientes (outliers), la CLI te solicitará el **Presupuesto Estimado ($C_{esp}$)**. Al ingresarlo, calculará el **Índice de Eficiencia Financiera ($IEF$)** mostrando el estado con colores Cyberpunk en base a la tolerancia estándar del 20%:
+* **$IEF < 0.8$:** `[OK] Termino mas rapido de lo esperado` (Verde Neón)
+* **$0.8 \le IEF \le 1.2$:** `[OK] Rango aceptable (Dentro de lo esperado)` (Lavanda/Amarillo)
+* **$IEF > 1.2$:** `[ALERTA] Presupuesto excedido` (Rojo Neón)
+
+---
+
 ## 🚀 Hoja de Ruta (Roadmap)
 
 Aunque el núcleo es funcional, el proyecto se encuentra en una fase de optimización continua:
 
 - [ ] **Migración a GraphQL:** Para resolver el problema de $N+1$ llamadas y obtener todos los datos en una sola petición.
-- [ ] **Análisis Git Local:** Implementación de lectura directa de la carpeta `.git` para máxima velocidad sin dependencia de API.
+- [x] **Análisis Git Local:** Implementación de lectura directa de la carpeta `.git` para máxima velocidad sin dependencia de API.
 - [ ] **Integración con Jira:** Siguiendo los bocetos originales para cruzar costos con Story Points.
 
 ---
