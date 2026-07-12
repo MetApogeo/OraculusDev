@@ -111,6 +111,56 @@ Al finalizar las tablas detalladas de commits normales e independientes (outlier
 - **$0.8 \le IEF \le 1.2$:** `[OK] Rango aceptable (Dentro de lo esperado)` (Lavanda/Amarillo)
 - **$IEF > 1.2$:** `[ALERTA] Presupuesto excedido` (Rojo Neón)
 
+### 📊 Reportes HTML Interactivos
+
+Al finalizar el análisis desde la terminal, la CLI te preguntará si deseas generar un reporte interactivo en formato HTML:
+```text
+¿Desea generar un reporte HTML? [Y/n]: Y
+```
+Esto guardará el archivo en la carpeta local `oraculus_reports/` y lo abrirá automáticamente en tu navegador predeterminado. El reporte contiene:
+- **Gráficas Plotly Cyberpunk:** Un gráfico de barras horizontales interactivo con el costo por commit (coloreado según la calidad del código) y un gráfico de pastel con la distribución porcentual de calidad.
+- **Isotipo e Identidad Visual:** Integra el isotipo vectorial original renderizado directamente en SVG con degradados neón.
+- **Riesgo de Negocio & Deuda Técnica:** Muestra de forma destacada la tarjeta de riesgo y recomendaciones clave para Project Managers.
+- **Exportación nativa a PDF:** Incluye un botón interactivo `⬇ Exportar como PDF` optimizado mediante reglas CSS `@media print` para ocultar botones, apilar gráficos y mantener los degradados y colores oscuros en la impresión en Chrome, Firefox y Edge.
+
+### 📜 Historial de Análisis (`oraculus history`)
+
+Oraculus registra automáticamente el historial de todos tus reportes generados en `oraculus_reports/index.json` (el cual queda ignorado en Git de forma segura). El comando `history` proporciona herramientas avanzadas para dar seguimiento al repositorio:
+
+```bash
+oraculus history [OPCIONES]
+```
+
+#### Opciones de Historial
+
+* **Listar Historial:** Muestra la lista de todos los análisis generados en formato de tabla cyberpunk, con colores dinámicos basados en el riesgo de negocio del proyecto:
+  ```bash
+  oraculus history
+  ```
+  Al final de la tabla, si cuentas con más de un análisis para el último repositorio analizado, se mostrará el panel de **Tendencia** detallando la evolución de tu IEF y Deuda Técnica acumulada:
+  ```text
+  +-------- === TENDENCIA: MetApogeo/OraculusDev === --------+
+  |   IEF:   0.14 -> 2.07 -> 0.90 [^ Deteriorando]           |
+  |   Deuda: $0 -> $0 -> $0 [= Estable]                      |
+  +----------------------------------------------------------+
+  ```
+* **Abrir Reportes (`--open`):** Abre directamente en tu navegador predeterminado el reporte HTML guardado bajo el ID seleccionado:
+  ```bash
+  oraculus history --open 3
+  ```
+* **Estadísticas Consolidadas (`--stats`):** Muestra el promedio general de IEF, peor análisis (mayor desvío), mejor análisis y costo acumulado de deuda técnica:
+  ```bash
+  oraculus history --stats
+  ```
+* **Comparación Lado a Lado (`--compare`):** Contrasta de forma estructurada dos análisis específicos en columnas lado a lado:
+  ```bash
+  oraculus history --compare 1 3
+  ```
+* **Limpieza Interactiva (`--clean`):** Despliega un menú en terminal para eliminar reportes antiguos (pudiendo vaciar todo el historial o conservar únicamente los últimos 3 análisis):
+  ```bash
+  oraculus history --clean
+  ```
+
 ---
 
 ## 🚀 Hoja de Ruta (Roadmap)
