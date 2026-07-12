@@ -14,7 +14,10 @@ def cli():
 @click.option('--salario', type=float, help='Salario mensual promedio.')
 @click.option('--horas', type=int, default=160, help='Horas efectivas al mes.')
 @click.option('--loc-por-hora', type=float, default=60.0, help='LOC promedio por hora.')
-def analyze(repo, limite, salario, horas, loc_por_hora):
+@click.option('--python', is_flag=True, help='Activa el análisis de calidad para Python.')
+@click.option('--php', is_flag=True, help='Activa el análisis de calidad para PHP (Próximamente).')
+@click.option('--js', is_flag=True, help='Activa el análisis de calidad para JavaScript (Próximamente).')
+def analyze(repo, limite, salario, horas, loc_por_hora, python, php, js):
     """Analiza los costos de desarrollo de un repositorio y calcula el IEF."""
     mostrar_banner()
     cargar_entorno(repo if es_local_path(repo) else None)
@@ -22,23 +25,36 @@ def analyze(repo, limite, salario, horas, loc_por_hora):
     if salario is None:
         salario = click.prompt("Salario mensual promedio (USD)", type=float)
 
-    click.echo("\n¿Qué lenguaje deseas analizar?")
-    click.echo("  [ 1 ] Python   (Radon)")
-    click.echo("  [ 2 ] PHP      — Próximamente")
-    click.echo("  [ 3 ] JavaScript — Próximamente")
-    click.echo("  [ 4 ] Auto-detectar")
-    lang_choice = click.prompt("Seleccione una opcion [Por defecto: 1]", default="1", type=click.Choice(['1', '2', '3', '4']), show_choices=False)
-
-    if lang_choice == "1":
+    lenguaje = None
+    if python:
         lenguaje = "python"
-    elif lang_choice == "2":
+    elif php:
         click.echo("[Info] PHP - Próximamente. Usando Python por ahora.")
         lenguaje = "python"
-    elif lang_choice == "3":
+    elif js:
         click.echo("[Info] JavaScript - Próximamente. Usando Python por ahora.")
         lenguaje = "python"
     else:
-        lenguaje = "auto"
+        if click.confirm("¿Desea realizar el analisis de calidad de codigo?", default=True):
+            click.echo("\n¿Qué lenguaje deseas analizar?")
+            click.echo("  [ 1 ] Python   (Radon)")
+            click.echo("  [ 2 ] PHP      — Próximamente")
+            click.echo("  [ 3 ] JavaScript — Próximamente")
+            click.echo("  [ 4 ] Auto-detectar")
+            lang_choice = click.prompt("Seleccione una opcion [Por defecto: 1]", default="1", type=click.Choice(['1', '2', '3', '4']), show_choices=False)
+
+            if lang_choice == "1":
+                lenguaje = "python"
+            elif lang_choice == "2":
+                click.echo("[Info] PHP - Próximamente. Usando Python por ahora.")
+                lenguaje = "python"
+            elif lang_choice == "3":
+                click.echo("[Info] JavaScript - Próximamente. Usando Python por ahora.")
+                lenguaje = "python"
+            else:
+                lenguaje = "auto"
+        else:
+            lenguaje = "skip"
 
     if limite < 10:
         click.echo("\n[Advertencia] Con menos de 10 commits el filtro IQR puede no ser representativo.")

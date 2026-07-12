@@ -92,6 +92,10 @@ oraculus analyze [OPCIONES]
 - `--salario FLOAT`: Salario mensual promedio en USD. Si se omite, la CLI te lo solicitará de forma interactiva.
 - `--horas INTEGER`: Horas efectivas trabajadas al mes. [Por defecto: `160`].
 - `--loc-por-hora FLOAT`: Promedio de Líneas de Código (LOC) escritas por hora. [Por defecto: `60.0`].
+- `--python`: Flag para forzar de forma inmediata el análisis de calidad con Radon para Python.
+- `--php`: Flag para forzar de forma inmediata el análisis para PHP (Próximamente).
+- `--js`: Flag para forzar de forma inmediata el análisis para JavaScript (Próximamente).
+*(Nota: Si no se ingresa ningún flag de lenguaje por CLI, la aplicación te preguntará si deseas hacer el análisis de calidad o prefieres omitirlo para mayor velocidad).*
 
 ### Ejemplo de Ejecución
 
