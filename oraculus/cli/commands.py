@@ -204,7 +204,7 @@ def history(abrir, compare, stats, clean):
         c = CyberpunkColors
         
         stats_content = (
-            f"  [bold {c.NEON_CYAN}]Promedio IEF:[/]    {prom_ief_str}\n"
+            f"  [bold {c.NEON_CYAN}]{t('cli', 'promedio_ief')}[/]    {prom_ief_str}\n"
             f"  [bold {c.NEON_CYAN}]{t('cli', 'peor_analisis')}[/]   {peor_str}\n"
             f"  [bold {c.NEON_CYAN}]{t('cli', 'mejor_analisis')}[/]  {mejor_str}\n"
             f"  [bold {c.NEON_CYAN}]{t('cli', 'deuda_acumulada')}[/] ${deuda_acum:.2f}"

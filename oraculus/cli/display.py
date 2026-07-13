@@ -195,13 +195,13 @@ def mostrar_resumen_financiero(resultados: Dict[str, Any], c_esp: float = None):
     
     # 3. Resumen Consolidado Principal
     panel_content = (
-        f"[bold {c.TEXTO_P}]{t('cli', 'desarrollo_estandar')}[/]  ${resultados['total_costo_normal']:.2f} (Tiempo: {resultados['total_tiempo_normal']:.2f}h)\n"
+        f"[bold {c.TEXTO_P}]{t('cli', 'desarrollo_estandar')}[/]  ${resultados['total_costo_normal']:.2f} ({t('cli', 'tiempo')}: {resultados['total_tiempo_normal']:.2f}h)\n"
     )
     if resultados["commits_outliers"]:
         panel_content += (
-            f"[bold {c.NEON_RED}]{t('cli', 'desarrollo_anomalo')}[/]   ${resultados['total_costo_outlier']:.2f} (Tiempo: {resultados['total_tiempo_outlier']:.2f}h)\n"
+            f"[bold {c.NEON_RED}]{t('cli', 'desarrollo_anomalo')}[/]   ${resultados['total_costo_outlier']:.2f} ({t('cli', 'tiempo')}: {resultados['total_tiempo_outlier']:.2f}h)\n"
         )
-    panel_content += f"[bold {c.NEON_CYAN}]{t('cli', 'total_c_real')}[/bold {c.NEON_CYAN}]       ${costo_real:.2f} (Tiempo Total: {tiempo_total:.2f}h)"
+    panel_content += f"[bold {c.NEON_CYAN}]{t('cli', 'total_c_real')}[/bold {c.NEON_CYAN}]       ${costo_real:.2f} ({t('cli', 'tiempo_total')}: {tiempo_total:.2f}h)"
     
     border_style = c.LOGO
     
