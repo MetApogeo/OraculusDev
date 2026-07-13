@@ -2,196 +2,235 @@
   <img src="docs/src/oraculus%20svg.svg" width="180" alt="Oraculus Logo" />
 </p>
 
-# Oraculus: Telemetría Financiera y Auditoría de Deuda Técnica
+<h1 align="center">Oraculus</h1>
+<p align="center"><strong>Financial Telemetry & Technical Debt Auditor</strong></p>
 
-**Oraculus** es un motor analítico avanzado y una herramienta de interfaz de línea de comandos (CLI) diseñada para cerrar la brecha de comunicación entre el desarrollo técnico y los tomadores de decisiones empresariales. Traduce las métricas complejas de repositorios de software (commits, complejidad ciclomática y volumen de cambios) en **indicadores financieros claros, tangibles e interactivos**.
-
----
-
-### ¿Por qué Oraculus?
-
-En la gestión de proyectos de software, la velocidad de desarrollo suele desconectarse de la realidad financiera. **Oraculus** soluciona esto a través de tres pilares operativos:
-1. **Auditoría Financiera Real ($C_{real}$):** Calcula el valor real del esfuerzo invertido de desarrollo cruzando los commits del equipo con el salario estimado y el tiempo de implementación.
-2. **Semáforo de Eficiencia ($IEF$):** Determina el Índice de Eficiencia Financiera comparando el costo consumido contra el presupuesto asignado, alertando inmediatamente ante desvíos presupuestarios.
-3. **Análisis de Riesgo y Deuda Técnica:** Identifica commits que degradan la calidad del código, estimando el costo de la Deuda Técnica acumulada y evaluando el Riesgo de Negocio (probabilidad de retrasos) para decisiones de PM proactivas.
+<p align="center">
+  <img src="https://img.shields.io/badge/python-3.10%2B-blue?style=flat-square&logo=python" alt="Python 3.10+"/>
+  <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License MIT"/>
+  <img src="https://img.shields.io/badge/i18n-es%20%7C%20en%20%7C%20fr-orange?style=flat-square" alt="i18n: es | en | fr"/>
+  <img src="https://img.shields.io/badge/CLI-Rich%20Terminal-9cf?style=flat-square" alt="Rich CLI"/>
+</p>
 
 ---
 
-## 📜 La Historia Detrás del Código
-
-El desarrollo de Oraculus no empezó frente a un monitor, sino en los espacios entre clases y horas libres durante mi labor como profesor.
-
-### 1. Las Primeras Semillas (Bocetos en Papel)
-
-Todo comenzó con la necesidad de centralizar la comunicación entre ramas de GitHub y tareas de Jira. Estos esquemas iniciales fueron trazados "entre clases", capturando la esencia de lo que hoy es el ecosistema de análisis.
-
-![image alt](https://github.com/MetApogeo/OraculusDev/blob/f732e9130c537b9e068e3f364435c52b7e059ef1/docs/img/hoja_ruta_boceto1.jpg)
-_Figura 1: Arquitectura inicial de flujo entre Jira, GitHub y el cálculo de Story Points._
-
-![image alt](https://github.com/MetApogeo/OraculusDev/blob/f732e9130c537b9e068e3f364435c52b7e059ef1/docs/img/hoja_ruta_boceto2.jpg)
-_Figura 2: Definición de esquemas estrictos con Pydantic y la lógica de mappers entre PHP y Python._
-
-### 2. La Formalización Matemática (La Pizarra)
-
-Durante una hora libre, las ideas se convirtieron en fórmulas. El **7 de mayo de 2026**, definí la lógica financiera que rige el sistema actual, incluyendo el filtro de **Rango Intercuartílico (IQR)** para detectar anomalías en los commits.
-
-![image alt](https://github.com/MetApogeo/OraculusDev/blob/f732e9130c537b9e068e3f364435c52b7e059ef1/docs/img/pizarra_calculo1.jpg)
-_Figura 3: Definición del Índice de Eficiencia Financiera ($IEF$) y fórmulas de costo por commit._
+**Oraculus** is an advanced analytical engine and CLI tool designed to bridge the communication gap between technical development and business decision-makers. It translates complex software repository metrics (commits, cyclomatic complexity, change volume) into **clear, tangible, interactive financial indicators**.
 
 ---
 
-## 🛠️ Estado Actual del Desarrollo
+## Features
 
-Hoy, Oraculus ha evolucionado de garabatos en papel a una herramienta CLI funcional que aplica principios sólidos de ingeniería de software:
-
-- **Arquitectura DTO:** Uso de `dataclasses` para el transporte de datos limpio y tipado.
-- **Responsabilidad Única (SRP):** El sistema está dividido en estaciones: conectores de datos, lógica de métricas (Calculadora) y presentación (CLI).
-- **Análisis Git Local Seguro:** Copia automática de repositorios locales a caché para comparaciones seguras sin interferir en el workspace activo del desarrollador.
-
-### Lógica Financiera Implementada
-
-El sistema calcula actualmente el costo de la siguiente manera:
-
-1. **Costo por Hora ($C_h$):**
-   $$C_h = \frac{\text{Salario Mensual}}{\text{Horas Efectivas}}$$
-
-2. **Tiempo por Commit ($T_{horas}$):**
-   $$T_{horas} = \frac{LOC_{commit}}{60}$$
-
-3. **Costo del Commit ($C_{commit}$):**
-   $$C_{commit} = C_h \cdot T_{horas}$$
-
-4. **Estimación de Deuda Técnica ($C_{deuda}$):**
-   $$C_{deuda} = 3 \cdot \sum C_{commit\_deuda}$$
-   (Estimación a futuro con un factor multiplicador de 3x).
+| Area | Capability |
+|------|-----------|
+| **Financial Audit** | Real cost of development effort calculated from commits, team salary, and implementation time |
+| **Efficiency Index (IEF)** | Compares consumed cost vs. assigned budget with real-time alerting on deviations |
+| **Technical Debt** | Identifies quality-degrading commits and estimates accumulated debt cost |
+| **Business Risk** | 4-tier risk assessment (LOW / MODERATE / HIGH / CRITICAL) with delay probability |
+| **Code Quality** | 4-tier classification per commit: `OPTIMIZATION`, `CLEAN_FEATURE`, `TECH_DEBT`, `NEUTRAL` |
+| **Safe Local Analysis** | Auto-clones repos to `~/.oraculus_cache/` — never touches your working directory |
+| **HTML Reports** | Interactive Plotly charts with SVG branding, exportable to PDF |
+| **History & Trends** | Full analysis history with trend tracking, stats, and side-by-side comparisons |
+| **i18n Support** | Multi-language CLI and reports — `es` (Spanish), `en` (English), `fr` (French) |
+| **Merge Filtering** | Automatically filters merge commits for accurate LOC analysis |
+| **IQR Anomaly Detection** | Interquartile Range filter spots outlier commits automatically |
+| **LOC Capping** | Realistic cap at 8 hours of work per commit to avoid distortion |
 
 ---
 
-## 📦 Instalacion
+## CLI Commands
 
-1. **Clonar el repositorio:**
+### `oraculus analyze`
 
-   ```bash
-   git clone https://github.com/MetApogeo/OraculusDev.git
-   cd OraculusDev
-   ```
-
-2. **Instalar el proyecto de forma global en modo editable:**
-
-   ```bash
-   pip install -e .
-   ```
-
-   Esto instalará todas las dependencias requeridas (`requests`, `python-dotenv`, `click`, `rich`) y registrará el comando `oraculus` en tu terminal de forma global.
-
-3. **(Opcional) Configurar GITHUB_TOKEN:**
-   Crea un archivo `.env` en la raíz del proyecto para evitar límites de tasa al analizar repositorios remotos vía API de GitHub:
-   ```env
-   GITHUB_TOKEN=tu_token_aqui
-   ```
-
----
-
-## 🚀 Uso
-
-El comando principal de la aplicación es `oraculus analyze`:
+Analyze a repository and generate a financial report.
 
 ```bash
-oraculus analyze [OPCIONES]
+oraculus analyze [OPTIONS]
 ```
 
-### Opciones Disponibles
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--repo` | TEXT | `.` | Local repo path or `user/repo` for remote |
+| `--limite` | INTEGER | `10` | Number of commits to analyze |
+| `--salario` | FLOAT | *(prompted)* | Average monthly salary (USD) |
+| `--horas` | INTEGER | `160` | Effective working hours per month |
+| `--loc-por-hora` | FLOAT | `60.0` | Average LOC written per hour |
+| `--python` | FLAG | — | Force Python code quality analysis (Radon) |
+| `--php` | FLAG | — | Force PHP quality analysis *(coming soon)* |
+| `--js` | FLAG | — | Force JavaScript quality analysis *(coming soon)* |
 
-- `--repo TEXT`: Ruta local del repositorio (por ejemplo, `.`) o repositorio remoto en formato `usuario/repo` (por ejemplo, `MetApogeo/OraculusDev`). [Por defecto: `.`].
-- `--limite INTEGER`: Número de commits a analizar en el historial. [Por defecto: `10`].
-- `--salario FLOAT`: Salario mensual promedio en USD. Si se omite, la CLI te lo solicitará de forma interactiva.
-- `--horas INTEGER`: Horas efectivas trabajadas al mes. [Por defecto: `160`].
-- `--loc-por-hora FLOAT`: Promedio de Líneas de Código (LOC) escritas por hora. [Por defecto: `60.0`].
-- `--python`: Flag para forzar de forma inmediata el análisis de calidad con Radon para Python.
-- `--php`: Flag para forzar de forma inmediata el análisis para PHP (Próximamente).
-- `--js`: Flag para forzar de forma inmediata el análisis para JavaScript (Próximamente).
-*(Nota: Si no se ingresa ningún flag de lenguaje por CLI, la aplicación te preguntará si deseas hacer el análisis de calidad o prefieres omitirlo para mayor velocidad).*
+If no language flag is given, the CLI will ask interactively — or auto-detect based on the project's file extensions.
 
-### Ejemplo de Ejecución
+**Example:**
 
 ```bash
-oraculus analyze --repo . --salario 3000 --limite 12
+oraculus analyze --repo MetApogeo/OraculusDev --salario 3000 --limite 12
 ```
 
-### Flujo de Análisis y Semáforo de Eficiencia
+**Efficiency Traffic Light:**
 
-Al finalizar las tablas detalladas de commits normales e independientes (outliers), la CLI te solicitará el **Presupuesto Estimado ($C_{esp}$)**. Al ingresarlo, calculará el **Índice de Eficiencia Financiera ($IEF$)** mostrando el estado con colores Cyberpunk en base a la tolerancia estándar del 20%:
+- **IEF < 0.8** — `[OK]` Completed faster than expected (Neon Green)
+- **0.8 ≤ IEF ≤ 1.2** — `[OK]` Acceptable range (Lavender / Yellow)
+- **IEF > 1.2** — `[ALERT]` Budget exceeded (Neon Red)
 
-- **$IEF < 0.8$:** `[OK] Termino mas rapido de lo esperado` (Verde Neón)
-- **$0.8 \le IEF \le 1.2$:** `[OK] Rango aceptable (Dentro de lo esperado)` (Lavanda/Amarillo)
-- **$IEF > 1.2$:** `[ALERTA] Presupuesto excedido` (Rojo Neón)
+### `oraculus history`
 
-### 📊 Reportes HTML Interactivos
+Track, compare, and clean your analysis reports.
 
-Al finalizar el análisis desde la terminal, la CLI te preguntará si deseas generar un reporte interactivo en formato HTML:
+```bash
+oraculus history [OPTIONS]
+```
+
+| Option | Description |
+|--------|-------------|
+| *(none)* | List all analyses in a table with trend panel |
+| `--open <N>` | Open report N in your default browser |
+| `--compare <A> <B>` | Side-by-side comparison of two analyses |
+| `--stats` | Consolidated statistics (avg IEF, worst/best, total debt) |
+| `--clean` | Interactive menu to delete reports (all / keep last 3 / cancel) |
+
+**History list** automatically shows a **trend panel** when multiple analyses exist for the last repo:
+
+```
++-------- === TENDENCY: MetApogeo/OraculusDev === --------+
+|   IEF:   0.14 -> 2.07 -> 0.90 [^ Deteriorating]           |
+|   Debt:  $0 -> $0 -> $0 [= Stable]                        |
++----------------------------------------------------------+
+```
+
+### `oraculus config lang`
+
+Switch the CLI and report language on the fly.
+
+```bash
+oraculus config lang <idioma>
+```
+
+| Language | Code |
+|----------|------|
+| Spanish  | `es` |
+| English  | `en` |
+| French   | `fr` |
+
+The setting persists in `~/.oraculus/config.json`. On first run, Oraculus auto-detects your system locale.
+
+---
+
+## Code Quality Classification
+
+Each commit is classified using cyclomatic complexity density and conventional commit prefixes:
+
+| Class | Meaning |
+|-------|---------|
+| `OPTIMIZATION` | Complexity decreased — clean-up or refactor |
+| `CLEAN_FEATURE` | Clean feature addition with acceptable complexity |
+| `TECH_DEBT` | Complexity grew >50% — debt detected |
+| `NEUTRAL` | No significant complexity change |
+
+The system also applies:
+- **Business Risk:** 4 levels (LOW / MODERATE / HIGH / CRITICAL) with % delay probability
+- **LOC Capping:** Any commit exceeding 8 hours of work is capped to prevent outlier distortion
+- **Merge Filtering:** Commits starting with "Merge" are excluded from analysis
+- **IQR Filter:** Statistical outlier detection on commit volume
+
+---
+
+## Interactive HTML Reports
+
+After analysis, you'll be prompted to generate an HTML report:
+
 ```text
-¿Desea generar un reporte HTML? [Y/n]: Y
+Generate HTML report? [Y/n]: Y
 ```
-Esto guardará el archivo en la carpeta local `oraculus_reports/` y lo abrirá automáticamente en tu navegador predeterminado. El reporte contiene:
-- **Gráficas Plotly Cyberpunk:** Un gráfico de barras horizontales interactivo con el costo por commit (coloreado según la calidad del código) y un gráfico de pastel con la distribución porcentual de calidad.
-- **Isotipo e Identidad Visual:** Integra el isotipo vectorial original renderizado directamente en SVG con degradados neón.
-- **Riesgo de Negocio & Deuda Técnica:** Muestra de forma destacada la tarjeta de riesgo y recomendaciones clave para Project Managers.
-- **Exportación nativa a PDF:** Incluye un botón interactivo `⬇ Exportar como PDF` optimizado mediante reglas CSS `@media print` para ocultar botones, apilar gráficos y mantener los degradados y colores oscuros en la impresión en Chrome, Firefox y Edge.
 
-### 📜 Historial de Análisis (`oraculus history`)
+Saved to `oraculus_reports/` and auto-opened in your browser. Includes:
 
-Oraculus registra automáticamente el historial de todos tus reportes generados en `oraculus_reports/index.json` (el cual queda ignorado en Git de forma segura). El comando `history` proporciona herramientas avanzadas para dar seguimiento al repositorio:
+- **Plotly Cyberpunk charts** — horizontal bar chart (cost per commit, color-coded by quality) and quality distribution donut
+- **SVG brand logo** with neon gradients
+- **Business risk & tech debt cards** with PM recommendations
+- **PDF export** via `@media print` CSS — works in Chrome, Firefox, Edge
+
+---
+
+## Installation
 
 ```bash
-oraculus history [OPCIONES]
+git clone https://github.com/MetApogeo/OraculusDev.git
+cd OraculusDev
+pip install -e .
 ```
 
-#### Opciones de Historial
+Dependencies (`requests`, `python-dotenv`, `click`, `rich`) are installed automatically. The `oraculus` command is registered globally.
 
-* **Listar Historial:** Muestra la lista de todos los análisis generados en formato de tabla cyberpunk, con colores dinámicos basados en el riesgo de negocio del proyecto:
-  ```bash
-  oraculus history
-  ```
-  Al final de la tabla, si cuentas con más de un análisis para el último repositorio analizado, se mostrará el panel de **Tendencia** detallando la evolución de tu IEF y Deuda Técnica acumulada:
-  ```text
-  +-------- === TENDENCIA: MetApogeo/OraculusDev === --------+
-  |   IEF:   0.14 -> 2.07 -> 0.90 [^ Deteriorando]           |
-  |   Deuda: $0 -> $0 -> $0 [= Estable]                      |
-  +----------------------------------------------------------+
-  ```
-* **Abrir Reportes (`--open`):** Abre directamente en tu navegador predeterminado el reporte HTML guardado bajo el ID seleccionado:
-  ```bash
-  oraculus history --open 3
-  ```
-* **Estadísticas Consolidadas (`--stats`):** Muestra el promedio general de IEF, peor análisis (mayor desvío), mejor análisis y costo acumulado de deuda técnica:
-  ```bash
-  oraculus history --stats
-  ```
-* **Comparación Lado a Lado (`--compare`):** Contrasta de forma estructurada dos análisis específicos en columnas lado a lado:
-  ```bash
-  oraculus history --compare 1 3
-  ```
-* **Limpieza Interactiva (`--clean`):** Despliega un menú en terminal para eliminar reportes antiguos (pudiendo vaciar todo el historial o conservar únicamente los últimos 3 análisis):
-  ```bash
-  oraculus history --clean
-  ```
+**(Optional)** Create a `.env` file for GitHub API rate limit avoidance:
+
+```env
+GITHUB_TOKEN=your_token_here
+```
 
 ---
 
-## 🚀 Hoja de Ruta (Roadmap)
+## Financial Logic
 
-Aunque el núcleo es funcional, el proyecto se encuentra en una fase de optimización continua:
+| Formula | Description |
+|---------|-------------|
+| $$C_h = \frac{\text{Monthly Salary}}{\text{Effective Hours}}$$ | Cost per hour |
+| $$T_{hours} = \frac{LOC_{commit}}{60}$$ | Time per commit |
+| $$C_{commit} = C_h \cdot T_{hours}$$ | Cost per commit |
+| $$C_{debt} = 3 \cdot \sum C_{commit\_debt}$$ | Technical debt estimate (3x multiplier) |
 
-- [ ] **Migración a GraphQL:** Para resolver el problema de $N+1$ llamadas y obtener todos los datos en una sola petición.
-- [x] **Análisis Git Local:** Implementación de lectura directa de la carpeta `.git` para máxima velocidad sin dependencia de API.
-- [ ] **Integración con Jira:** Siguiendo los bocetos originales para cruzar costos con Story Points.
+---
+
+## 📜 The Story Behind the Code
+
+Oraculus was born not in front of a monitor, but in the spaces between classes and free hours while teaching.
+
+### 1. First Seeds (Paper Sketches)
+
+It all started with the need to centralize communication between GitHub branches and Jira tasks. These initial sketches were drawn "between classes," capturing the essence of what is now the analysis ecosystem.
+
+![Initial architecture of the flow between Jira, GitHub, and Story Point calculation](https://github.com/MetApogeo/OraculusDev/blob/f732e9130c537b9e068e3f364435c52b7e059ef1/docs/img/hoja_ruta_boceto1.jpg)
+*Figure 1: Initial architecture of the flow between Jira, GitHub, and Story Point calculation.*
+
+![Strict schema definition with Pydantic and mapper logic between PHP and Python](https://github.com/MetApogeo/OraculusDev/blob/f732e9130c537b9e068e3f364435c52b7e059ef1/docs/img/hoja_ruta_boceto2.jpg)
+*Figure 2: Strict schema definition with Pydantic and mapper logic between PHP and Python.*
+
+### 2. Mathematical Formalization (The Whiteboard)
+
+During a free hour, ideas became formulas. On **May 7, 2026**, the financial logic that powers the current system was defined, including the **Interquartile Range (IQR)** filter for anomaly detection in commits.
+
+![Definition of the Financial Efficiency Index (IEF) and cost-per-commit formulas](https://github.com/MetApogeo/OraculusDev/blob/f732e9130c537b9e068e3f364435c52b7e059ef1/docs/img/pizarra_calculo1.jpg)
+*Figure 3: Definition of the Financial Efficiency Index (IEF) and cost-per-commit formulas.*
+
+### 3. Current Development State
+
+Today, Oraculus has evolved from paper scribbles into a functional CLI tool applying solid software engineering principles:
+
+- **DTO Architecture:** `dataclasses` for clean, typed data transport
+- **Single Responsibility (SRP):** Separated into stations — data connectors, metrics logic (Calculator), and presentation (CLI)
+- **Safe Local Git Analysis:** Auto-clones to `.oraculus_cache/` for safe comparisons without interfering with your active workspace
+- **Smart File Filtering:** Automatically ignores lock files, `vendor/`, `node_modules/`, `dist/`, `build/`, and minified assets
+- **Remote Fallback:** Falls back to GitHub API when local cloning fails
 
 ---
 
-## 📄 Licencia
+## Roadmap
 
-Este proyecto es de código abierto (Open Source).
-
-> _"De la pizarra al despliegue: Arquitectura sistémica para decisiones lógicas."_
+- [ ] **GraphQL Migration** — Solve N+1 API calls with a single request
+- [x] **Local Git Analysis** — Direct `.git` folder reading for maximum speed
+- [ ] **Jira Integration** — Cross-reference costs with Story Points (v0.2)
 
 ---
+
+## License
+
+Open source (MIT).
+
+> _"From the whiteboard to deployment: Systemic architecture for logical decisions."_
+
+---
+
+<p align="center">
+  <sub>Available in <strong>Español</strong> · <strong>English</strong> · <strong>Français</strong></sub>
+  <br>
+  <sub>Switch with <code>oraculus config lang es|en|fr</code></sub>
+</p>
