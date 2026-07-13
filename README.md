@@ -221,6 +221,33 @@ Today, Oraculus has evolved from paper scribbles into a functional CLI tool appl
 
 ---
 
+## 💎 Oraculus Editions
+
+Oraculus operates under an **Open Core** model. The analytical core will always be free, with advanced solutions for enterprise teams.
+
+### 🟢 Oraculus Community Edition (CE)
+
+The version hosted in this repository. 100% open source (MIT License), free forever, built for individual developers and local evaluations.
+
+- Local analysis via Git telemetry and Radon
+- Base financial engine (IEF calculation, Costs, Technical Debt)
+- Manual HTML report generation with native PDF export
+- Interactive history in the local terminal
+
+### 🟣 Oraculus Pro / Enterprise (Coming Soon)
+
+Designed exclusively for Tech Leads, Project Managers, and Software Agencies who need financial telemetry at scale and process automation. *Close-source, distributed under a commercial license.*
+
+- **Native Jira Cloud integration** (Story Point-based cost calculation)
+- **Full multi-language support** (PHP, JavaScript/TypeScript, etc.)
+- **CI/CD automation:** Automated PDF report delivery at Sprint close
+- **Multi-repo consolidation:** Simultaneous audit across repositories and microservices
+
+> 📩 **Interested in Oraculus Pro for your company or agency?**
+> We are currently developing the Enterprise version. If you want early access or a commercial demo, contact me directly or watch for the official launch.
+
+---
+
 ## License
 
 Open source (MIT).
