@@ -8,20 +8,20 @@ inicializar_i18n()
 
 @click.group()
 def cli():
-    """Oraculus: Herramienta CLI de Analitica Financiera de Repositorios."""
+    """Oraculus: Financial Analytics CLI for Git Repositories."""
     pass
 
 @click.command(name="analyze")
-@click.option('--repo', default='.', help='Ruta local del repo o usuario/repo de GitHub.')
-@click.option('--limite', default=10, type=int, help='Límite de commits a analizar.')
-@click.option('--salario', type=float, help='Salario mensual promedio.')
-@click.option('--horas', type=int, default=160, help='Horas efectivas al mes.')
-@click.option('--loc-por-hora', type=float, default=60.0, help='LOC promedio por hora.')
-@click.option('--python', is_flag=True, help='Activa el análisis de calidad para Python.')
-@click.option('--php', is_flag=True, help='Activa el análisis de calidad para PHP (Próximamente).')
-@click.option('--js', is_flag=True, help='Activa el análisis de calidad para JavaScript (Próximamente).')
+@click.option('--repo', default='.', help='Local repo path or GitHub user/repo.')
+@click.option('--limite', default=10, type=int, help='Commit limit to analyze.')
+@click.option('--salario', type=float, help='Average monthly salary.')
+@click.option('--horas', type=int, default=160, help='Effective working hours per month.')
+@click.option('--loc-por-hora', type=float, default=60.0, help='Average LOC per hour.')
+@click.option('--python', is_flag=True, help='Enable code quality analysis for Python.')
+@click.option('--php', is_flag=True, help='Enable code quality analysis for PHP (Coming soon).')
+@click.option('--js', is_flag=True, help='Enable code quality analysis for JavaScript (Coming soon).')
 def analyze(repo, limite, salario, horas, loc_por_hora, python, php, js):
-    """Analiza los costos de desarrollo de un repositorio y calcula el IEF."""
+    """Analyze development costs of a repository and calculate IEF."""
     mostrar_banner()
     cargar_entorno(repo if es_local_path(repo) else None)
 
@@ -129,12 +129,12 @@ def limpiar_unicode_consola(texto: str) -> str:
         )
 
 @click.command("history")
-@click.option("--open", "abrir", type=int, default=None, help="Número del reporte a abrir")
-@click.option("--compare", type=(int, int), default=None, help="Comparación lado a lado de dos análisis específicos (ej. --compare 1 3)")
-@click.option("--stats", is_flag=True, help="Estadísticas globales del historial de análisis")
-@click.option("--clean", is_flag=True, help="Eliminar reportes antiguos de forma interactiva")
+@click.option("--open", "abrir", type=int, default=None, help="Report number to open in browser.")
+@click.option("--compare", type=(int, int), default=None, help="Side-by-side comparison of two analyses (e.g. --compare 1 3).")
+@click.option("--stats", is_flag=True, help="Show global statistics for the analysis history.")
+@click.option("--clean", is_flag=True, help="Interactively delete old reports.")
 def history(abrir, compare, stats, clean):
-    """Muestra el historial de análisis generados."""
+    """Show the history of generated analyses."""
     from oraculus.utils.history_manager import cargar_historial, abrir_reporte
     
     if abrir is not None:
@@ -416,14 +416,14 @@ cli.add_command(history)
 
 @click.group(name="config")
 def config_group():
-    """Configurar preferencias de Oraculus (idioma, etc.)."""
+    """Configure Oraculus preferences (language, etc.)."""
     pass
 
 
 @config_group.command(name="lang")
 @click.argument("idioma", type=click.Choice(["es", "en", "fr"], case_sensitive=False))
 def config_lang(idioma: str):
-    """Cambia el idioma de la interfaz. Idiomas disponibles: es, en, fr."""
+    """Change the interface language. Available languages: es, en, fr."""
     from oraculus.utils.i18n import cambiar_idioma_configurado
     try:
         cambiar_idioma_configurado(idioma)
