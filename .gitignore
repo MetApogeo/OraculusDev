@@ -1,3 +1,4 @@
 .env
 .oraculus_cache/
-oraculus_reports/
+oraculus_reports/
+*.egg-info/
