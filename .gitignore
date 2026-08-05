@@ -1,4 +1,11 @@
 .env
 .oraculus_cache/
 oraculus_reports/
+
+# Archivos compilados/Optimizados/Archivos DLL
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Cache y compilación
 *.egg-info/
