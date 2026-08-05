@@ -128,7 +128,7 @@ def ejecutar_motor_analisis(
     riesgo = evaluar_riesgo_negocio(
         commits_deuda=commits_deuda,
         total_commits=len(commits),
-        costo_real=costo_real,
+        costo_real=costo_deuda,          # costo solo de commits DEUDA_TECNICA
         costo_futuro=costo_futuro_estimado
     )
 

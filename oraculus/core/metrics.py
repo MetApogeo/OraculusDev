@@ -64,18 +64,22 @@ def calcular_delta_calidad(
     delta_loc = loc_despues - loc_antes
     delta_cc = cc_despues - cc_antes
     
-    # Capa 1: Conventional commits mandan
+    # Capa 1: Conventional commits mandan (excepto si el mensaje indica deuda explícita)
     mensaje_lower = mensaje.lower()
     es_feature = mensaje_lower.startswith("feat:")
     es_refactor = mensaje_lower.startswith("refactor:")
     es_fix = mensaje_lower.startswith("fix:")
-    
-    if es_feature or es_refactor:
-        # Un feat: nunca es deuda por definición
+
+    # Palabras clave que indican deuda técnica explícita en el mensaje
+    _KEYWORDS_DEUDA = ("tech debt", "technical debt", "deuda tecnica", "deuda técnica", " td ", ":td:", "debt")
+    tiene_keyword_deuda = any(kw in mensaje_lower for kw in _KEYWORDS_DEUDA)
+
+    if (es_feature or es_refactor) and not tiene_keyword_deuda:
+        # Un feat:/refactor: sin keywords de deuda nunca es DEUDA_TECNICA
         if delta_loc < 0 or delta_cc < 0:
             return "OPTIMIZACION"
         return "FEATURE_LIMPIA"
-    
+
     # Capa 2: Densidad de complejidad
     densidad_antes = cc_antes / max(loc_antes, 1)
     densidad_despues = cc_despues / max(loc_despues, 1)
@@ -103,7 +107,7 @@ def estimar_costo_deuda(commits_deuda: list) -> float:
 def evaluar_riesgo_negocio(
     commits_deuda: list,
     total_commits: int,
-    costo_real: float,
+    costo_real: float,   # costo acumulado de los commits DEUDA_TECNICA (no del proyecto completo)
     costo_futuro: float
 ) -> dict:
     cantidad_deuda = len(commits_deuda)
