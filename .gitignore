@@ -4,3 +4,4 @@ oraculus_reports/
 
 __pycache__/
 *.py[cod]
+/test
