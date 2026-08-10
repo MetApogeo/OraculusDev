@@ -1,22 +1,28 @@
 # Interfaces
-from BaseRepository import BaseRepository
+from oraculus.core.git.IBaseRepository import IBaseRepository
 
 # Utilidades
-import os
 import subprocess
 from pathlib import Path
 from oraculus.utils.config import preparar_directorio_cache
 from oraculus.utils.i18n import t
 
-class LocalGitRepository(BaseRepository):
+class LocalGitRepository(IBaseRepository):
 
-    def __init__(self, ruta_repo: str, limit: int = 10):
-        super().__init__(ruta_repo=ruta_repo, limit=limit)
-        self.ruta_absoluta = Path(self.ruta_repo).absolute()
+    def __init__(self, raw_repo: str, limit: int = 10):
+        super().__init__(raw_repo=raw_repo, limit=limit)
+        self.ruta_absoluta = Path(self.raw_repo).absolute()
 
     
     def obtener_commits(self):
-        self._preparar_repositorio()
+        try:
+            self._preparar_repositorio()
+        except RuntimeError as e:
+            print(f"[Advertencia] No se pudo crear el caché seguro: {e}")
+            print("[Advertencia] Se operará sobre el repositorio original.")
+
+            self.ruta_repo_cache = self.ruta_absoluta
+
         #Aqui falta más logica (Proximamente)
 
     def _preparar_repositorio(self):
@@ -30,7 +36,7 @@ class LocalGitRepository(BaseRepository):
     def _clonar_repositorio(self):
         # Definimos los parámetros para el clonado
         cmd = ['git', 'clone', '--quiet', self.ruta_absoluta, self.ruta_repo_cache]
-        mensaje_cmd = t('cli', 'info_clonado_local').format(ruta=self.ruta_repo)
+        mensaje_cmd = t('cli', 'info_clonado_local').format(ruta=self.raw_repo)
 
         def manejar_resultado(result:subprocess.CompletedProcess):
             if result.returncode != 0:
@@ -43,7 +49,7 @@ class LocalGitRepository(BaseRepository):
 
 
     def _validar(self):
-        ruta = Path(self.ruta_repo)
+        ruta = Path(self.raw_repo)
 
         # Comprobar que la ruta exista en el disco
         if not ruta.exists():
