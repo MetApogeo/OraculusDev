@@ -162,8 +162,9 @@ class GithubRepository(IBaseRepository):
             return []
 
         headers:dict[str, str] = self._obtener_headers_request_api()
+        workers:int = min(len(shas), 10)
 
-        with ThreadPoolExecutor(max_workers=len(shas)) as executor:
+        with ThreadPoolExecutor(max_workers=workers) as executor:
             resultados = executor.map(lambda sha: self._hacer_peticion_detalle_sha(sha, headers=headers), shas)
 
         lista_detalles_commits:List[dict[str, Any]] = []
