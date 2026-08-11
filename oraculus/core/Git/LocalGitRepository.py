@@ -17,6 +17,9 @@ class LocalGitRepository(IBaseRepository):
         super().__init__(raw_repo=raw_repo, parser=ParserLocalSubprocess(), limit=limit)
         self.ruta_absoluta = Path(self.raw_repo).absolute()
 
+    @property
+    def es_origen_local(self):
+        return True
     
     def obtener_commits(self)-> List[CommitData]:
         try:

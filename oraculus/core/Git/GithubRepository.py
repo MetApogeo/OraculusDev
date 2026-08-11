@@ -50,6 +50,10 @@ class GithubRepository(IBaseRepository):
 
         self.url_remote_repository = self._construir_url()
 
+    @property
+    def es_origen_local(self):
+        return False
+
     def obtener_commits(self)-> List[CommitData]:
         estrategia_obtencion_commits = None
         try: 
@@ -57,6 +61,8 @@ class GithubRepository(IBaseRepository):
             estrategia_obtencion_commits = super()._commits_desde_carpeta
         except Exception as clone_error:
             print(t('cli', 'info_clone_api_fallback').format(error=clone_error))
+            self.ruta_repo_cache = None
+
             self.limit = self.FALLBACK_API_COMMIT_LIMIT
             estrategia_obtencion_commits = self._commits_desde_api
             self.parser = ParserGithubApi()

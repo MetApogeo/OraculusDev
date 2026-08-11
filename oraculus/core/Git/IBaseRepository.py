@@ -17,6 +17,11 @@ class IBaseRepository(ABC):
 
         self._validar()
 
+    @property
+    @abstractmethod
+    def es_origen_local(self)-> bool:
+        pass
+
     @abstractmethod
     def obtener_commits(self) -> List[CommitData]:
         pass
