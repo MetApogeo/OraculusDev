@@ -1,20 +1,24 @@
 # Interfaces
 from oraculus.core.git.IBaseRepository import IBaseRepository
 
+# Implementaciones
+from oraculus.core.git.parser.ParserLocalSubprocess import ParserLocalSubprocess
+from oraculus.core.metrics import CommitData
 # Utilidades
 import subprocess
 from pathlib import Path
 from oraculus.utils.config import preparar_directorio_cache
 from oraculus.utils.i18n import t
+from typing import List
 
 class LocalGitRepository(IBaseRepository):
 
     def __init__(self, raw_repo: str, limit: int = 10):
-        super().__init__(raw_repo=raw_repo, limit=limit)
+        super().__init__(raw_repo=raw_repo, parser=ParserLocalSubprocess(), limit=limit)
         self.ruta_absoluta = Path(self.raw_repo).absolute()
 
     
-    def obtener_commits(self):
+    def obtener_commits(self)-> List[CommitData]:
         try:
             self._preparar_repositorio()
         except RuntimeError as e:
@@ -23,7 +27,10 @@ class LocalGitRepository(IBaseRepository):
 
             self.ruta_repo_cache = self.ruta_absoluta
 
-        #Aqui falta más logica (Proximamente)
+        commits_crudo:str = super()._commits_desde_carpeta()
+        commit_data_list:List[CommitData] = self.parser.parse_to_commit_data_list(commits_crudo)
+
+        return commit_data_list
 
     def _preparar_repositorio(self):
         # Preparar carpeta

@@ -1,6 +1,7 @@
 import re
 import subprocess
 import requests
+from concurrent.futures import ThreadPoolExecutor
 from typing import List, Callable, Any
 #Utilidades
 from oraculus.utils.config import preparar_directorio_cache
@@ -8,6 +9,10 @@ from oraculus.core.metrics import CommitData
 from oraculus.utils.i18n import t
 # Interfaces
 from oraculus.core.git.IBaseRepository import IBaseRepository
+from oraculus.core.git.parser.ICommitParser import ICommitParser
+
+from oraculus.core.git.parser.ParserLocalSubprocess import ParserLocalSubprocess
+from oraculus.core.git.parser.ParserGithubApi import ParserGithubApi
 
 class GithubRepository(IBaseRepository):
 
@@ -32,8 +37,10 @@ class GithubRepository(IBaseRepository):
         )
     }
 
+    FALLBACK_API_COMMIT_LIMIT = 5
+
     def __init__(self, raw_repo:str, limit:int = 10, token:str|None = None):
-        super().__init__(raw_repo=raw_repo, limit=limit)
+        super().__init__(raw_repo=raw_repo,parser=ParserLocalSubprocess(), limit=limit)
 
         self.token:str|None = token
 
@@ -43,18 +50,21 @@ class GithubRepository(IBaseRepository):
 
         self.url_remote_repository = self._construir_url()
 
-    def obtener_commits(self):
+    def obtener_commits(self)-> List[CommitData]:
         estrategia_obtencion_commits = None
         try: 
             self._preparar_repositorio()
             estrategia_obtencion_commits = super()._commits_desde_carpeta
         except Exception as clone_error:
             print(t('cli', 'info_clone_api_fallback').format(error=clone_error))
-            self.limit = 5
+            self.limit = self.FALLBACK_API_COMMIT_LIMIT
             estrategia_obtencion_commits = self._commits_desde_api
+            self.parser = ParserGithubApi()
 
-        commits:List[CommitData] = estrategia_obtencion_commits()
+        commits_crudos = estrategia_obtencion_commits()
+        commit_data_list:List[CommitData] = self.parser.parse_to_commit_data_list(commits_crudos)
 
+        return commit_data_list
 
     def _preparar_repositorio(self):
         carpeta_destino = f"{self.usuario}_{self.repositorio}"
@@ -106,14 +116,16 @@ class GithubRepository(IBaseRepository):
 
         return f"https://{url_token}{at}github.com/{self.usuario}/{self.repositorio}.git"
 
-    def _commits_desde_api(self) -> List[CommitData]:
-        url:str = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/commits"
-        headers:dict[str, str] = { "Accept": "application/vnd.github.v3+json" }
+    def _commits_desde_api(self) -> List[dict[str, Any]]:
+        lista_shas:List[str] = self._hacer_peticion_inicial_de_commits()
+        lista_detalles_shas:List[dict[str, Any]] = self._obtener_detalles_lista_sha(lista_shas)
 
-        if self.token is None:
-            print("[Advertencia] GITHUB_TOKEN no esta configurado en el archivo .env. Podrías experimentar límites de tasa (Rate Limiting).")
-        else:
-            headers["Authorization"] = f"token {self.token}"
+        return lista_detalles_shas
+
+
+    def _hacer_peticion_inicial_de_commits(self)-> List[str]:
+        url:str = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/commits"
+        headers:dict[str, str] = self._obtener_headers_request_api()
 
         try:
             response = requests.get(url, headers=headers, params={"per_page": self.limit}, timeout=10)
@@ -124,11 +136,63 @@ class GithubRepository(IBaseRepository):
             msg_error:str = f"Error al obtener commits de GitHub (Código {response.status_code}): {response.text}"
 
             if response.status_code in self.msg_error_status:
-                msg_error = self.msg_error_status[response.status_code](response)
+                msg_error = self.msg_error_status[response.status_code](self, response)
 
             raise RuntimeError(msg_error)
 
         commits_json = response.json()
 
-        if not commits_json: 
+        if not commits_json: return
+
+        lista_commits:List[str] = []
+
+        for commit in commits_json:
+            sha:str = commit['sha']
+            lista_commits.append(sha)
+
+        return lista_commits
+
+    def _obtener_detalles_lista_sha(self, shas:List[str])-> List[dict[str, Any]]:
+        if not shas:
             return []
+
+        headers:dict[str, str] = self._obtener_headers_request_api()
+
+        with ThreadPoolExecutor(max_workers=len(shas)) as executor:
+            resultados = executor.map(lambda sha: self._hacer_peticion_detalle_sha(sha, headers=headers), shas)
+
+        lista_detalles_commits:List[dict[str, Any]] = []
+
+        for detalle_commit in resultados:
+            if detalle_commit is not None:
+                lista_detalles_commits.append(detalle_commit)
+
+        return lista_detalles_commits
+    
+    def _hacer_peticion_detalle_sha(self, sha:str, headers):
+        url:str = f"https://api.github.com/repos/{self.usuario}/{self.repositorio}/commits/{sha}"
+
+        SHORT_SHA_LENGTH = 7
+
+        sha_corto = sha[:SHORT_SHA_LENGTH]
+
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+            if response.status_code != 200:
+                print(f"[Advertencia] No se pudieron obtener detalles para el commit {sha_corto}. Codigo: {response.status_code}")
+                return None
+
+            return response.json()
+        except requests.RequestException as error:
+            print(f"[Advertencia] Error de conexión al obtener detalles para el commit {sha_corto}: {error}")
+            return None
+
+    def _obtener_headers_request_api(self)-> dict[str, str]:
+        headers:dict[str, str] = { "Accept": "application/vnd.github.v3+json" }
+
+        if self.token is None:
+            print("[Advertencia] GITHUB_TOKEN no esta configurado en el archivo .env. Podrías experimentar límites de tasa (Rate Limiting).")
+        else:
+            headers["Authorization"] = f"token {self.token}"
+
+        return headers

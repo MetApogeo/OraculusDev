@@ -1,15 +1,19 @@
 from abc import ABC, abstractmethod
 from collections.abc import Callable
-from typing import List
+from typing import List, Type
 from oraculus.core.metrics import CommitData
 import subprocess
 
+from oraculus.core.git.parser.ICommitParser import ICommitParser
+from oraculus.core.git.parser.ParserLocalSubprocess import ParserLocalSubprocess
+
 class IBaseRepository(ABC):
 
-    def __init__(self, raw_repo:str, limit:int = 10):
+    def __init__(self, raw_repo:str, parser:ICommitParser, limit:int = 10):
         self.raw_repo = raw_repo.strip()
         self.ruta_repo_cache:str | None = None
         self.limit = limit
+        self.parser:ICommitParser = parser
 
         self._validar()
 
@@ -38,7 +42,7 @@ class IBaseRepository(ABC):
         except FileNotFoundError:
             raise RuntimeError("No se encontró el comando 'git' en el sistema. Asegurarse de tener Git instalado y en tu PATH")
 
-    def _commits_desde_carpeta(self) -> List[CommitData]:
+    def _commits_desde_carpeta(self) -> str:
         cmd = ["git", "-c", "safe.directory=*", "log", f"-n", str(self.limit), "--numstat", "--pretty=format:COMMIT:%h|%s"]
 
         try:
@@ -54,4 +58,6 @@ class IBaseRepository(ABC):
             raise RuntimeError(f"Error de Git al obtener los commits: {salida_error.strip()}")
 
         if not output.strip():
-            return []
+            return ""
+
+        return output
