@@ -7,6 +7,9 @@ from oraculus.core.metrics import CommitData
 from oraculus.utils.data_helpers import es_archivo_ignorado
 from oraculus.utils.i18n import t
 
+# Implementacion factory 
+from oraculus.core.git.RepositoryFactory import RepositoryFactory
+
 def es_local(entrada: str) -> bool:
     return os.path.exists(entrada)
 
@@ -197,34 +200,8 @@ def clonar_local_a_cache(ruta_local: str) -> str:
     return dest_path
 
 def preparar_repositorio_analisis(repo: str, limite: int, token: str = None):
-    if es_local(repo):
-        try:
-            cache_path = clonar_local_a_cache(repo)
-            commits = obtener_commits_local(cache_path, limite)
-            return commits, cache_path, True
-        except Exception as e:
-            print(t('cli', 'advertencia_error_clone').format(error=e))
-            commits = obtener_commits_local(repo, limite)
-            return commits, repo, True
-    else:
-        if "github.com" not in repo and not repo.startswith("http"):
-            repo_name = repo.replace("/", "_")
-        else:
-            repo_name = repo.split("/")[-1].replace(".git", "")
-        
-        cache_dir = os.path.join(os.getcwd(), ".oraculus_cache")
-        cache_path = os.path.join(cache_dir, repo_name)
-        
-        try:
-            commits = clonar_y_obtener_commits(repo, limite, token)
-            return commits, cache_path, False
-        except Exception as clone_err:
-            print(t('cli', 'info_clone_api_fallback').format(error=clone_err))
-            limite_api = 5 if limite > 5 else limite
-            try:
-                commits = obtener_commits_api(repo, token)[:limite_api]
-            except Exception as api_err:
-                print(t('cli', 'error_api_github').format(error=api_err))
-                commits = []
-            return commits, None, False
+    
+    repositorio = RepositoryFactory.crear(raw_repo=repo, limit=limite, token=token)
+    commits = repositorio.obtener_commits()
 
+    return commits, repositorio.ruta_repo_cache, repositorio.es_origen_local

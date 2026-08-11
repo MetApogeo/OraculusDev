@@ -5,6 +5,8 @@ import locale
 _translations = {}
 _current_lang = "en"
 
+# TODO: Reemplazar locale.getdefaultlocale() (deprecado en Python 3.15)
+# Opciones: locale.getlocale(), os.environ.get('LANG'), o locale.getencoding()
 def detect_system_language() -> str:
     try:
         sys_lang, _ = locale.getdefaultlocale()
