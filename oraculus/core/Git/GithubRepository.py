@@ -75,7 +75,6 @@ class GithubRepository(IBaseRepository):
     def _preparar_repositorio(self):
         carpeta_destino = f"{self.usuario}_{self.repositorio}"
         self.ruta_repo_cache = preparar_directorio_cache(carpeta_destino)
-
         self._clonar_repositorio()
 
     def _clonar_repositorio(self):
@@ -196,7 +195,7 @@ class GithubRepository(IBaseRepository):
     def _obtener_headers_request_api(self)-> dict[str, str]:
         headers:dict[str, str] = { "Accept": "application/vnd.github.v3+json" }
 
-        if self.token is None:
+        if not self.token:
             print("[Advertencia] GITHUB_TOKEN no esta configurado en el archivo .env. Podrías experimentar límites de tasa (Rate Limiting).")
         else:
             headers["Authorization"] = f"token {self.token}"
