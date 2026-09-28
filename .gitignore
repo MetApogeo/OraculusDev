@@ -2,6 +2,12 @@
 .oraculus_cache/
 oraculus_reports/
 
+__pycache__/
+*.py[cod]
+
+# Agregados para test
+.vscode
+/test
 # Archivos compilados/Optimizados/Archivos DLL
 __pycache__/
 *.py[cod]
